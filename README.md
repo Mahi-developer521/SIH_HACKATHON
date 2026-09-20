@@ -57,28 +57,94 @@ The platform implements the complete **32-Step Closed-Loop Master Architecture**
 
 ---
 
+## 🏛️ Full-Stack Architecture (React + Express + PostgreSQL)
+
+The platform is a production-grade full-stack distributed system:
+
+```
+┌────────────────────────────────────────────────────────┐
+│               React Frontend (Vite + TS)               │
+│  - Role Portals (Farmer, Vet, Field Worker, Lab, Admin)│
+│  - Offline Outbox (PWA + localStorage sync on online)  │
+│  - Interactive 9-Layer Leaflet GIS Risk Map            │
+└──────────────────────────┬─────────────────────────────┘
+                           │ REST API (/api/*)
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│            Node.js + Express Backend API               │
+│  - Strict Data Validation & Canonicalization           │
+│  - Multi-Factor AI Risk Scoring Engine                 │
+│  - Dual-Mode Resilience (PostgreSQL + Seed Fallback)   │
+└──────────────────────────┬─────────────────────────────┘
+                           │ pg Connection Pool
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│              PostgreSQL Relational DB                  │
+│  - Relational Schema (14 Tables, Constraints, Indexes) │
+│  - Full ACID Audit Trail & Epidemiological History     │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) v18+ (Tested on Node v24)
 - npm v9+
+- [PostgreSQL](https://www.postgresql.org/) v14+ (Local instance or Cloud PostgreSQL e.g. Neon, Supabase, Aiven, RDS)
 
-### Installation & Run
+---
+
+### Step 1: Start Backend (Express + PostgreSQL)
 
 ```bash
-# 1. Install dependencies
+cd backend
+
+# 1. Install backend dependencies
 npm install
 
-# 2. Start development server
+# 2. Configure Database URL in backend/.env
+# (Copy from backend/.env.example)
+# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/livestock_db
+# PORT=5000
+
+# 3. Initialize PostgreSQL schema and seed demonstration data
+npm run db:init
+
+# 4. Start the Express API server
+npm start
+# (Backend runs on http://localhost:5000 with health check at http://localhost:5000/api/health)
+```
+
+> **Note on Resilient Dual-Mode**: If PostgreSQL is temporarily offline or not yet configured, the backend automatically operates in in-memory fallback mode with seed data, ensuring zero developer friction or crashes. Once PostgreSQL is started, all queries execute directly on PostgreSQL.
+
+---
+
+### Step 2: Start Frontend (React + Vite)
+
+In a new terminal window at the project root:
+
+```bash
+# 1. Install frontend dependencies (if not already done)
+npm install
+
+# 2. Start Vite development server
 npm run dev
 
-# 3. Open browser at:
+# 3. Open your browser:
 # http://localhost:3000
 ```
+*(Requests to `/api/*` are automatically proxied from port 3000 to the Express backend on port 5000).*
+
+---
 
 ### Production Build
 ```bash
+# Build React frontend
 npm run build
+
+# Preview build
 npm run preview
 ```
 
@@ -88,24 +154,40 @@ npm run preview
 
 ```
 livestock-surveillance-platform/
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── tailwind.config.js
+├── backend/
+│   ├── .env.example            # Sample environment config
+│   ├── package.json            # Express, pg, cors, dotenv dependencies
+│   ├── server.js               # Express API entry point & route registration
+│   ├── db.js                   # PostgreSQL connection pool with fallback
+│   ├── middleware/
+│   │   └── errorHandler.js     # Centralized API error response handler
+│   ├── controllers/
+│   │   ├── reportController.js # Disease reports & AI risk evaluation
+│   │   ├── missionController.js# Vet response missions
+│   │   ├── investigationController.js # Field inspections
+│   │   ├── labController.js    # Diagnostic samples & molecular results
+│   │   ├── interventionController.js # Quarantines & ring vaccination
+│   │   └── animalController.js # Herd registry
+│   ├── routes/                 # Express REST route definitions
+│   ├── scripts/
+│   │   └── initDb.js           # Automated schema & seed migration runner
+│   └── sql/
+│       ├── schema.sql          # 14 Relational PostgreSQL DDL tables
+│       └── seed.sql            # Demonstration baseline epidemiological seed
 ├── src/
 │   ├── main.tsx
 │   ├── App.tsx
 │   ├── types/
-│   │   └── surveillance.ts         # Domain types & interfaces
+│   │   └── surveillance.ts     # Domain types & interfaces
 │   ├── data/
-│   │   └── mockData.ts             # Epidemiological seed data & villages
+│   │   └── mockData.ts         # Baseline epidemiological seed data
 │   ├── services/
-│   │   ├── validationService.ts    # Data validation & duplicate detection
-│   │   ├── aiEngine.ts             # Symptom scoring & anomaly detection
-│   │   └── proximityEngine.ts      # Haversine distance & alert engine
+│   │   ├── apiService.ts       # Full-stack REST API client
+│   │   ├── validationService.ts# Data validation & duplicate detection
+│   │   ├── aiEngine.ts         # Symptom scoring & anomaly detection
+│   │   └── proximityEngine.ts  # Haversine distance & alert engine
 │   ├── store/
-│   │   └── surveillanceStore.ts    # Central state store with local persistence
+│   │   └── surveillanceStore.ts# Full-stack state store with PostgreSQL sync
 │   ├── components/
 │   │   ├── common/
 │   │   │   ├── Navbar.tsx          # Universal role switcher & status bar

@@ -1,0 +1,17 @@
+{
+  "name": "livestock-surveillance-backend",
+  "version": "1.0.0",
+  "description": "Express and PostgreSQL backend for National Livestock Disease Surveillance Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:init": "node scripts/initDb.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}

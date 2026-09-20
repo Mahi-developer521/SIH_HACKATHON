@@ -27,6 +27,7 @@ import {
 import { ValidationService } from '../services/validationService';
 import { AiEngine } from '../services/aiEngine';
 import { ProximityEngine } from '../services/proximityEngine';
+import { ApiService } from '../services/apiService';
 
 const STORAGE_KEY = 'LIVESTOCK_SURVEILLANCE_STATE_V2';
 
@@ -198,6 +199,78 @@ export class SurveillanceStoreManager {
     };
   }
 
+  private static isInitialized = false;
+
+  /**
+   * Synchronize initial state with PostgreSQL database via REST API
+   */
+  static async initializeFromBackend() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+
+    try {
+      const [backendReports, backendMissions, backendSamples, backendAnimals] = await Promise.allSettled([
+        ApiService.getReports(),
+        ApiService.getMissions(),
+        ApiService.getLabSamples(),
+        ApiService.getAnimals()
+      ]);
+
+      this.setState(s => {
+        let mergedCases = [...s.cases];
+        let mergedMissions = [...s.missions];
+        let mergedSamples = [...s.samples];
+        let mergedHerd = [...s.herd];
+
+        if (backendReports.status === 'fulfilled' && Array.isArray(backendReports.value) && backendReports.value.length > 0) {
+          backendReports.value.forEach(bReport => {
+            const idx = mergedCases.findIndex(c => c.id === bReport.id);
+            if (idx >= 0) mergedCases[idx] = { ...mergedCases[idx], ...bReport };
+            else mergedCases.unshift(bReport);
+          });
+        }
+
+        if (backendMissions.status === 'fulfilled' && Array.isArray(backendMissions.value) && backendMissions.value.length > 0) {
+          backendMissions.value.forEach(bMission => {
+            const idx = mergedMissions.findIndex(m => m.id === bMission.id);
+            if (idx >= 0) mergedMissions[idx] = { ...mergedMissions[idx], ...bMission };
+            else mergedMissions.unshift(bMission);
+          });
+        }
+
+        if (backendSamples.status === 'fulfilled' && Array.isArray(backendSamples.value) && backendSamples.value.length > 0) {
+          backendSamples.value.forEach(bSample => {
+            const idx = mergedSamples.findIndex(sm => sm.id === bSample.id);
+            if (idx >= 0) mergedSamples[idx] = { ...mergedSamples[idx], ...bSample };
+            else mergedSamples.unshift(bSample);
+          });
+        }
+
+        if (backendAnimals.status === 'fulfilled' && Array.isArray(backendAnimals.value) && backendAnimals.value.length > 0) {
+          backendAnimals.value.forEach(bAnimal => {
+            const idx = mergedHerd.findIndex(a => a.tagNumber === bAnimal.tagNumber);
+            if (idx >= 0) mergedHerd[idx] = { ...mergedHerd[idx], ...bAnimal };
+            else mergedHerd.push(bAnimal);
+          });
+        }
+
+        return {
+          ...s,
+          cases: mergedCases,
+          missions: mergedMissions,
+          samples: mergedSamples,
+          herd: mergedHerd,
+          systemLogs: [
+            'PostgreSQL Central Sync: Synchronized surveillance cases, missions, samples, and herd registry.',
+            ...s.systemLogs
+          ]
+        };
+      });
+    } catch (err: any) {
+      console.warn('[SurveillanceStore] Backend sync notice:', err.message);
+    }
+  }
+
   // --- Authentication & Roles ---
   static login(role: UserRole, identifier: string, pass: string): boolean {
     const user = DEMO_USERS[role];
@@ -262,7 +335,7 @@ export class SurveillanceStoreManager {
   /**
    * Complete Farmer Case Submission Pipeline (Supports Multiple Reports & Offline Outbox)
    */
-  static submitFarmerReport(formData: {
+  static async submitFarmerReport(formData: {
     animalType: any;
     totalAnimals: number;
     sickCount: number;
@@ -272,12 +345,12 @@ export class SurveillanceStoreManager {
     voiceTranscript?: string;
     coordinates: { lat: number; lng: number };
     village: string;
-  }) {
+  }): Promise<CaseReport> {
     const state = this.getState();
     const activeFarmer = state.farmers[0]; // Ramesh Patel
 
-    // Check if offline
-    if (state.isOffline) {
+    // Check if offline (user toggle or browser disconnect)
+    if (state.isOffline || !navigator.onLine) {
       const queueId = `OUTBOX-${Date.now().toString().slice(-4)}`;
       const queuedItem: OfflineQueuedCase = {
         queueId,
@@ -324,129 +397,199 @@ export class SurveillanceStoreManager {
       return provisionalCase;
     }
 
-    // Step 5: Data Validation (supports multiple sequential reports)
-    const validation = ValidationService.validateReport({
-      farmerId: activeFarmer.id,
-      animalType: formData.animalType,
-      totalAnimals: formData.totalAnimals,
-      sickCount: formData.sickCount,
-      deadCount: formData.deadCount,
-      symptoms: formData.symptoms,
-      coordinates: formData.coordinates,
-      existingCases: state.cases
-    });
+    // Attempt to submit directly to Express / PostgreSQL REST API
+    try {
+      const apiCase = await ApiService.createReport({
+        farmerId: activeFarmer.id,
+        farmerName: activeFarmer.name,
+        farmerPhone: activeFarmer.phone,
+        village: formData.village || activeFarmer.village,
+        animalType: formData.animalType,
+        totalAnimals: formData.totalAnimals,
+        sickCount: formData.sickCount,
+        deadCount: formData.deadCount,
+        symptoms: formData.symptoms,
+        photoUrl: formData.photoUrl,
+        voiceTranscript: formData.voiceTranscript,
+        coordinates: formData.coordinates
+      });
 
-    const caseId = `CASE-${1024 + state.cases.length}`;
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      let updatedClusters = [...state.clusters];
+      let newAlerts = [...state.alerts];
 
-    const baseCase: Omit<CaseReport, 'riskScore' | 'riskLevel' | 'aiReasons' | 'recommendedAction'> = {
-      id: caseId,
-      farmerId: activeFarmer.id,
-      farmerName: activeFarmer.name,
-      farmerPhone: activeFarmer.phone,
-      village: formData.village || activeFarmer.village,
-      animalType: formData.animalType,
-      totalAnimals: formData.totalAnimals,
-      sickCount: formData.sickCount,
-      deadCount: formData.deadCount,
-      symptoms: validation.standardizedSymptoms,
-      photoUrl: formData.photoUrl,
-      voiceTranscript: formData.voiceTranscript,
-      coordinates: formData.coordinates,
-      submittedAt: timestamp,
-      status: 'SUBMITTED',
-      validationNotes: validation.notes,
-      isValid: validation.isValid
-    };
+      if (apiCase.riskLevel === 'HIGH') {
+        let currentCluster = updatedClusters.find(c => c.id === 'CL-001');
+        if (currentCluster) {
+          currentCluster = {
+            ...currentCluster,
+            caseIds: [...currentCluster.caseIds, apiCase.id],
+            totalCases: currentCluster.totalCases + apiCase.sickCount,
+            totalDeaths: currentCluster.totalDeaths + apiCase.deadCount,
+            riskScore: Math.max(currentCluster.riskScore, apiCase.riskScore)
+          };
+          updatedClusters = updatedClusters.map(c => c.id === currentCluster!.id ? currentCluster! : c);
+          apiCase.clusterId = currentCluster.id;
 
-    // Step 6 & 7: AI Analysis Engine
-    const aiResult = AiEngine.analyzeCase(baseCase, state.cases);
-
-    const fullCase: CaseReport = {
-      ...baseCase,
-      status: aiResult.riskLevel === 'HIGH' ? 'VET_REVIEW' : 'AI_ANALYZED',
-      riskScore: aiResult.riskScore,
-      riskLevel: aiResult.riskLevel,
-      aiReasons: aiResult.aiReasons,
-      recommendedAction: aiResult.recommendedAction
-    };
-
-    let updatedClusters = [...state.clusters];
-    let newAlerts = [...state.alerts];
-
-    if (fullCase.riskLevel === 'HIGH') {
-      // Step 11 & 12: Cluster & GIS Risk Zone Update
-      let currentCluster = updatedClusters.find(c => c.id === 'CL-001');
-      if (currentCluster) {
-        currentCluster = {
-          ...currentCluster,
-          caseIds: [...currentCluster.caseIds, fullCase.id],
-          totalCases: currentCluster.totalCases + fullCase.sickCount,
-          totalDeaths: currentCluster.totalDeaths + fullCase.deadCount,
-          riskScore: Math.max(currentCluster.riskScore, fullCase.riskScore)
-        };
-        updatedClusters = updatedClusters.map(c => c.id === currentCluster!.id ? currentCluster! : c);
-        fullCase.clusterId = currentCluster.id;
-
-        // Step 14: Geospatial Proximity Alerts for nearby farmers
-        const triggeredAlerts = ProximityEngine.generateTargetedAlerts(currentCluster, state.farmers);
-        newAlerts = [...triggeredAlerts, ...newAlerts];
+          const triggeredAlerts = ProximityEngine.generateTargetedAlerts(currentCluster, state.farmers);
+          newAlerts = [...triggeredAlerts, ...newAlerts];
+        }
       }
+
+      const logEntry = `Case ${apiCase.id} submitted & saved to PostgreSQL: AI evaluated Risk Score ${apiCase.riskScore} (${apiCase.riskLevel}). ${
+        apiCase.riskLevel === 'HIGH' ? 'AI Alert dispatched to Veterinary Officer!' : 'Preventive Precautions advisory issued to farmer.'
+      }`;
+
+      this.setState(s => ({
+        ...s,
+        cases: [apiCase, ...s.cases.filter(c => c.id !== apiCase.id)],
+        clusters: updatedClusters,
+        alerts: newAlerts,
+        activeStep: apiCase.riskLevel === 'HIGH' ? 15 : 9,
+        systemLogs: [logEntry, ...s.systemLogs]
+      }));
+
+      return apiCase;
+    } catch (apiErr: any) {
+      console.warn('[SurveillanceStore] API submission notice, using resilient fallback:', apiErr.message);
+
+      // Local Fallback Processing
+      const validation = ValidationService.validateReport({
+        farmerId: activeFarmer.id,
+        animalType: formData.animalType,
+        totalAnimals: formData.totalAnimals,
+        sickCount: formData.sickCount,
+        deadCount: formData.deadCount,
+        symptoms: formData.symptoms,
+        coordinates: formData.coordinates,
+        existingCases: state.cases
+      });
+
+      const caseId = `CASE-${1024 + state.cases.length}`;
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+      const baseCase: Omit<CaseReport, 'riskScore' | 'riskLevel' | 'aiReasons' | 'recommendedAction'> = {
+        id: caseId,
+        farmerId: activeFarmer.id,
+        farmerName: activeFarmer.name,
+        farmerPhone: activeFarmer.phone,
+        village: formData.village || activeFarmer.village,
+        animalType: formData.animalType,
+        totalAnimals: formData.totalAnimals,
+        sickCount: formData.sickCount,
+        deadCount: formData.deadCount,
+        symptoms: validation.standardizedSymptoms,
+        photoUrl: formData.photoUrl,
+        voiceTranscript: formData.voiceTranscript,
+        coordinates: formData.coordinates,
+        submittedAt: timestamp,
+        status: 'SUBMITTED',
+        validationNotes: validation.notes,
+        isValid: validation.isValid
+      };
+
+      const aiResult = AiEngine.analyzeCase(baseCase, state.cases);
+
+      const fullCase: CaseReport = {
+        ...baseCase,
+        status: aiResult.riskLevel === 'HIGH' ? 'VET_REVIEW' : 'AI_ANALYZED',
+        riskScore: aiResult.riskScore,
+        riskLevel: aiResult.riskLevel,
+        aiReasons: aiResult.aiReasons,
+        recommendedAction: aiResult.recommendedAction
+      };
+
+      let updatedClusters = [...state.clusters];
+      let newAlerts = [...state.alerts];
+
+      if (fullCase.riskLevel === 'HIGH') {
+        let currentCluster = updatedClusters.find(c => c.id === 'CL-001');
+        if (currentCluster) {
+          currentCluster = {
+            ...currentCluster,
+            caseIds: [...currentCluster.caseIds, fullCase.id],
+            totalCases: currentCluster.totalCases + fullCase.sickCount,
+            totalDeaths: currentCluster.totalDeaths + fullCase.deadCount,
+            riskScore: Math.max(currentCluster.riskScore, fullCase.riskScore)
+          };
+          updatedClusters = updatedClusters.map(c => c.id === currentCluster!.id ? currentCluster! : c);
+          fullCase.clusterId = currentCluster.id;
+
+          const triggeredAlerts = ProximityEngine.generateTargetedAlerts(currentCluster, state.farmers);
+          newAlerts = [...triggeredAlerts, ...newAlerts];
+        }
+      }
+
+      const logEntry = `Case ${caseId} submitted: AI evaluated Risk Score ${fullCase.riskScore} (${fullCase.riskLevel}).`;
+
+      this.setState(s => ({
+        ...s,
+        cases: [fullCase, ...s.cases],
+        clusters: updatedClusters,
+        alerts: newAlerts,
+        activeStep: fullCase.riskLevel === 'HIGH' ? 15 : 9,
+        systemLogs: [logEntry, ...s.systemLogs]
+      }));
+
+      return fullCase;
     }
-
-    const logEntry = `Case ${caseId} submitted: AI evaluated Risk Score ${fullCase.riskScore} (${fullCase.riskLevel}). ${
-      fullCase.riskLevel === 'HIGH' ? 'AI Alert dispatched to Veterinary Officer!' : 'Preventive Precautions advisory issued to farmer.'
-    }`;
-
-    this.setState(s => ({
-      ...s,
-      cases: [fullCase, ...s.cases],
-      clusters: updatedClusters,
-      alerts: newAlerts,
-      activeStep: fullCase.riskLevel === 'HIGH' ? 15 : 9,
-      systemLogs: [logEntry, ...s.systemLogs]
-    }));
-
-    return fullCase;
   }
 
   /**
-   * Synchronize Offline Outbox with Central System
+   * Synchronize Offline Outbox with Central PostgreSQL Backend
    */
-  static syncOfflineOutbox() {
+  static async syncOfflineOutbox() {
     const state = this.getState();
     if (state.offlineOutbox.length === 0) return;
 
     const outboxItems = [...state.offlineOutbox];
-    let addedCount = 0;
+    let syncedCount = 0;
 
-    outboxItems.forEach(item => {
-      this.submitFarmerReport({
-        animalType: item.animalType,
-        totalAnimals: item.totalAnimals,
-        sickCount: item.sickCount,
-        deadCount: item.deadCount,
-        symptoms: item.symptoms,
-        photoUrl: item.photoUrl,
-        voiceTranscript: item.voiceTranscript,
-        coordinates: item.coordinates,
-        village: item.village
-      });
-      addedCount++;
-    });
+    for (const item of outboxItems) {
+      try {
+        await ApiService.createReport({
+          animalType: item.animalType,
+          totalAnimals: item.totalAnimals,
+          sickCount: item.sickCount,
+          deadCount: item.deadCount,
+          symptoms: item.symptoms,
+          photoUrl: item.photoUrl,
+          voiceTranscript: item.voiceTranscript,
+          coordinates: item.coordinates,
+          village: item.village
+        });
+        syncedCount++;
+      } catch (err: any) {
+        console.warn('[SurveillanceStore] Error syncing outbox item:', err.message);
+      }
+    }
 
-    const syncLog = `Outbox Synchronization Complete: ${addedCount} offline reports processed and merged into surveillance database.`;
-    this.setState(s => ({
-      ...s,
-      offlineOutbox: [],
-      systemLogs: [syncLog, ...s.systemLogs]
-    }));
+    try {
+      const refreshedReports = await ApiService.getReports();
+      this.setState(s => ({
+        ...s,
+        cases: refreshedReports,
+        offlineOutbox: [],
+        systemLogs: [
+          `Outbox Synchronization Complete: ${syncedCount} queued reports uploaded to PostgreSQL.`,
+          ...s.systemLogs
+        ]
+      }));
+    } catch {
+      this.setState(s => ({
+        ...s,
+        offlineOutbox: [],
+        systemLogs: [
+          `Outbox Synced (${syncedCount} items uploaded to central surveillance system).`,
+          ...s.systemLogs
+        ]
+      }));
+    }
   }
 
   /**
    * Veterinary Actions: Create Response Mission (Step 17)
    */
-  static createMission(params: {
+  static async createMission(params: {
     caseId: string;
     clusterId?: string;
     workerId: string;
@@ -482,12 +625,27 @@ export class SurveillanceStoreManager {
       activeStep: 18,
       systemLogs: [log, ...s.systemLogs]
     }));
+
+    try {
+      await ApiService.createMission({
+        caseId: params.caseId,
+        clusterId: params.clusterId,
+        assignedToWorkerId: params.workerId,
+        workerName: params.workerName,
+        targetVillage: params.targetVillage,
+        coordinates: params.coordinates,
+        priority: params.priority,
+        instructions: params.instructions
+      });
+    } catch (e: any) {
+      console.warn('[SurveillanceStore] Mission backend sync notice:', e.message);
+    }
   }
 
   /**
    * Field Worker Actions: Submit Investigation & Collect Sample (Steps 19 & 20)
    */
-  static submitFieldInvestigation(params: {
+  static async submitFieldInvestigation(params: {
     missionId: string;
     examinedCount: number;
     sickCount: number;
@@ -557,12 +715,41 @@ export class SurveillanceStoreManager {
       activeStep: newSample ? 21 : 24,
       systemLogs: [log, ...s.systemLogs]
     }));
+
+    try {
+      await ApiService.createInvestigation({
+        missionId: params.missionId,
+        examinedCount: params.examinedCount,
+        sickCount: params.sickCount,
+        deadCount: params.deadCount,
+        observedSymptoms: params.observedSymptoms,
+        vaccinationAudited: params.vaccinationAudited,
+        treatmentHistory: params.treatmentHistory,
+        coordinates: mission.coordinates,
+        fieldNotes: params.fieldNotes,
+        sampleTaken: params.sampleRequired,
+        sampleId: newSample?.id
+      });
+
+      if (newSample) {
+        await ApiService.createLabSample({
+          caseId: mission.caseId,
+          missionId: mission.id,
+          sampleType: newSample.sampleType,
+          collectedBy: newSample.collectedBy,
+          coordinates: newSample.coordinates,
+          targetLabName: newSample.targetLabName
+        });
+      }
+    } catch (e: any) {
+      console.warn('[SurveillanceStore] Investigation backend sync notice:', e.message);
+    }
   }
 
   /**
    * Lab Staff: Process Sample & Submit Result (Steps 21 -> 22 -> 23)
    */
-  static submitLabResult(params: {
+  static async submitLabResult(params: {
     sampleId: string;
     testType: any;
     pathogenIdentified: string;
@@ -607,12 +794,27 @@ export class SurveillanceStoreManager {
       activeStep: 24, // Veterinary Verification
       systemLogs: [log, ...s.systemLogs]
     }));
+
+    try {
+      await ApiService.createLabResult({
+        sampleId: sample.id,
+        caseId: sample.caseId,
+        testMethod: params.testType,
+        pathogenIdentified: params.pathogenIdentified,
+        result: params.result,
+        confidenceScore: params.cycleThreshold,
+        labTechnicianName: params.testedBy,
+        notes: params.remarks
+      });
+    } catch (e: any) {
+      console.warn('[SurveillanceStore] Lab result backend sync notice:', e.message);
+    }
   }
 
   /**
    * Veterinary Officer: Authorize Intervention & Containment (Step 24 & 25)
    */
-  static authorizeIntervention(params: {
+  static async authorizeIntervention(params: {
     clusterId?: string;
     caseId?: string;
     type: 'RING_VACCINATION' | 'EMERGENCY_TREATMENT' | 'HERD_QUARANTINE' | 'MOVEMENT_RESTRICTION' | 'BIOSECURITY_ADVISORY';
@@ -668,6 +870,21 @@ export class SurveillanceStoreManager {
       activeStep: 28, // Outcome Monitoring
       systemLogs: [log, ...s.systemLogs]
     }));
+
+    try {
+      await ApiService.createIntervention({
+        clusterId: params.clusterId,
+        caseId: params.caseId,
+        type: params.type,
+        title: `${params.type} in ${params.targetVillage}`,
+        description: params.notes,
+        targetVillages: [params.targetVillage],
+        authorizedBy: params.authorizedBy,
+        dosesRequired: params.doses || 150
+      });
+    } catch (e: any) {
+      console.warn('[SurveillanceStore] Intervention backend sync notice:', e.message);
+    }
   }
 
   /**
@@ -731,7 +948,7 @@ export class SurveillanceStoreManager {
   /**
    * Add a new animal to the farmer's registered herd
    */
-  static addAnimalToHerd(animal: Omit<AnimalHerdItem, 'id'>) {
+  static async addAnimalToHerd(animal: Omit<AnimalHerdItem, 'id'>) {
     const newId = `ANM-0${this.getState().herd.length + 1}`;
     const newItem: AnimalHerdItem = { ...animal, id: newId };
     const log = `Registered new animal ${newItem.tagNumber} (${newItem.breed} ${newItem.species}) to farmer herd.`;
@@ -741,6 +958,12 @@ export class SurveillanceStoreManager {
       herd: [newItem, ...s.herd],
       systemLogs: [log, ...s.systemLogs]
     }));
+
+    try {
+      await ApiService.createAnimal(animal);
+    } catch (e: any) {
+      console.warn('[SurveillanceStore] Animal registration backend sync notice:', e.message);
+    }
   }
 
   /**
@@ -788,6 +1011,7 @@ export function useSurveillanceStore() {
   const [state, setState] = useState<SurveillanceState>(SurveillanceStoreManager.getState());
 
   useEffect(() => {
+    SurveillanceStoreManager.initializeFromBackend();
     return SurveillanceStoreManager.subscribe(setState);
   }, []);
 

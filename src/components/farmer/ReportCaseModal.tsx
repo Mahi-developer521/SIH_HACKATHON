@@ -139,6 +139,7 @@ export const ReportCaseModal: React.FC<Props> = ({
 
   // Submission Result State
   const [submittedCase, setSubmittedCase] = useState<CaseReport | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -163,7 +164,7 @@ export const ReportCaseModal: React.FC<Props> = ({
     }
   };
 
-  // Real Web Speech API or Fallback
+  // Voice Recording Simulation / Web Speech
   const handleVoiceRecordToggle = () => {
     if (!isRecording) {
       setIsRecording(true);
@@ -237,20 +238,27 @@ export const ReportCaseModal: React.FC<Props> = ({
     setVoiceTranscript('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = submitFarmerReport({
-      animalType,
-      totalAnimals,
-      sickCount,
-      deadCount,
-      symptoms: selectedSymptoms,
-      photoUrl,
-      voiceTranscript,
-      coordinates: coords,
-      village
-    });
-    setSubmittedCase(result);
+    setIsSubmitting(true);
+    try {
+      const result = await submitFarmerReport({
+        animalType,
+        totalAnimals,
+        sickCount,
+        deadCount,
+        symptoms: selectedSymptoms,
+        photoUrl,
+        voiceTranscript,
+        coordinates: coords,
+        village
+      });
+      setSubmittedCase(result);
+    } catch (err: any) {
+      console.error('Submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -627,13 +635,20 @@ export const ReportCaseModal: React.FC<Props> = ({
             <div className="pt-2">
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className={`w-full font-bold py-3 rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
-                  state.isOffline
-                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
+                  isSubmitting
+                    ? 'opacity-70 cursor-not-allowed bg-slate-700 text-slate-300'
+                    : state.isOffline
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
                 }`}
               >
-                {state.isOffline ? (
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Submitting Report to System...
+                  </>
+                ) : state.isOffline ? (
                   <>
                     <WifiOff className="w-4 h-4" /> {t('saveOffline')}
                   </>
