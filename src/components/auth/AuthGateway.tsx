@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   KeyRound,
   Building2,
-  HelpCircle
+  HelpCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export const AuthGateway: React.FC = () => {
@@ -22,6 +24,7 @@ export const AuthGateway: React.FC = () => {
 
   const [identifier, setIdentifier] = useState('farmer@example.com');
   const [password, setPassword] = useState('farmer123');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
@@ -203,17 +206,27 @@ export const AuthGateway: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="gov-label">
                   {t('password')}
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    className="gov-input pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

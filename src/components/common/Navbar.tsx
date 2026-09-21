@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserRole, Language } from '../../types/surveillance';
 import { useSurveillanceStore, DEMO_USERS } from '../../store/surveillanceStore';
 import { I18nService } from '../../services/i18nService';
@@ -32,6 +32,8 @@ export const Navbar: React.FC = () => {
     simulateOutcomeProgression, 
     logout 
   } = useSurveillanceStore();
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const lang = state.language;
   const t = (k: any) => I18nService.get(lang, k);
@@ -242,16 +244,55 @@ export const Navbar: React.FC = () => {
 
             {/* Sign Out / Switch Role Button */}
             <button
-              onClick={() => logout()}
+              onClick={() => setShowLogoutConfirm(true)}
               className="bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-800/60 text-xs font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
               title="Sign out of current role and return to Role Selection Gateway"
             >
               <LogOut className="w-3.5 h-3.5 text-rose-400" />
-              <span className="hidden sm:inline">Sign Out / Switch Role</span>
+              <span className="hidden sm:inline">{t('logout') || 'Sign Out'}</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog for Logout */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-400 font-bold">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-white">Confirm Sign Out</h4>
+                <p className="text-xs text-slate-400">Return to authentication portal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to sign out of the {currentMeta.badge} session? Any unsaved local edits will be preserved in offline storage.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="gov-btn-secondary text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="gov-btn-danger text-xs"
+              >
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

@@ -131,5 +131,24 @@
   "confirm": "Confirm & Proceed",
 
   "toastSuccess": "Operation completed successfully!",
-  "toastError": "An error occurred. Please try again."
+  "toastError": "An error occurred. Please try again.",
+
+  "step1": "Animal / Herd Information",
+  "step2": "Clinical Symptoms",
+  "step3": "Mortality & Severity",
+  "step4": "Photo, Camera & Voice Evidence",
+  "step5": "Location & GPS",
+  "step6": "Review Information",
+  "step7": "AI Assessment & Submit",
+  "nextStep": "Continue",
+  "prevStep": "Back",
+  "stepOf": "Step",
+
+  "legendHighRisk": "HIGH RISK (Red Zone)",
+  "legendMediumRisk": "MEDIUM RISK",
+  "legendLowRisk": "LOW RISK",
+  "legendCluster": "DISEASE CLUSTER",
+  "clusterPanelTitle": "Disease Cluster Information",
+
+  "aiDisclaimer": "Decision-Support Notice: The AI algorithm provides preliminary risk stratification for rapid operational triage. Official clinical diagnosis is confirmed by the attending Veterinary Officer and certified diagnostic laboratory testing."
 }

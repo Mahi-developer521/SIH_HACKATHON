@@ -2,41 +2,44 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { useSurveillanceStore } from '../../store/surveillanceStore';
 import { DISTRICT_CENTER } from '../../data/mockData';
+import { DiseaseCluster, CaseReport } from '../../types/surveillance';
+import { I18nService } from '../../services/i18nService';
+import { CaseDetailModal } from '../common/CaseDetailModal';
 import { 
-  Layers, 
+  AlertTriangle, 
   MapPin, 
-  Eye, 
-  ShieldAlert, 
-  Syringe, 
-  Building2, 
-  FlaskConical, 
-  CloudSun 
+  X, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw,
+  CheckCircle2,
+  Activity,
+  Layers
 } from 'lucide-react';
 
 export const GisMap: React.FC = () => {
-  const { state, setActiveRole, createMission } = useSurveillanceStore();
+  const { state } = useSurveillanceStore();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
 
-  // Layer Visibility State (Sections 12 & 13)
-  const [layers, setLayers] = useState({
-    cases: true,
-    riskZones: true,
-    clusters: true,
-    villages: true,
-    farmers: true,
-    vetCenters: true,
-    laboratories: true,
-    vaccinationGaps: true,
-    weather: true
+  // Selected entities for concise inspection panel
+  const [selectedCluster, setSelectedCluster] = useState<DiseaseCluster | null>(null);
+  const [selectedCase, setSelectedCase] = useState<CaseReport | null>(null);
+  const [dossierCase, setDossierCase] = useState<CaseReport | null>(null);
+
+  // Strict 4-Item Layer Filters
+  const [filter, setFilter] = useState({
+    highRisk: true,
+    mediumRisk: true,
+    lowRisk: true,
+    clusters: true
   });
 
-  const toggleLayer = (layerKey: keyof typeof layers) => {
-    setLayers(prev => ({ ...prev, [layerKey]: !prev[layerKey] }));
-  };
+  const lang = state.language;
+  const t = (k: any) => I18nService.get(lang, k);
 
-  // Initialize Map
+  // 1. Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -47,26 +50,20 @@ export const GisMap: React.FC = () => {
         zoomControl: false
       });
 
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-      // Dark theme map tiles from CartoDB
+      // Professional dark geospatial tile layer
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
         subdomains: 'abcd',
-        maxZoom: 19
+        maxZoom: 18
       }).addTo(map);
 
       const layerGroup = L.layerGroup().addTo(map);
       layerGroupRef.current = layerGroup;
       mapInstanceRef.current = map;
     }
-
-    return () => {
-      // Keep map alive across tab switching or clean up on unmount
-    };
   }, []);
 
-  // Update Layers when state or toggles change
+  // 2. Render ONLY the 4 strict items: High Risk, Medium Risk, Low Risk, and Clusters
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layerGroup = layerGroupRef.current;
@@ -74,361 +71,329 @@ export const GisMap: React.FC = () => {
 
     layerGroup.clearLayers();
 
-    // 1. High-Risk Red Zones (Section 12: RED ZONE buffer)
-    if (layers.riskZones) {
+    // A. HIGH RISK: Red Risk Zone Buffers
+    if (filter.highRisk) {
       state.clusters.forEach(cl => {
         if (cl.status !== 'CONTAINED') {
-          // Red outer danger buffer (6.5 km)
-          const buffer = L.circle([cl.centerCoordinates.lat, cl.centerCoordinates.lng], {
+          const redZone = L.circle([cl.centerCoordinates.lat, cl.centerCoordinates.lng], {
             radius: cl.radiusKm * 1000,
             color: '#ef4444',
             weight: 2,
-            dashArray: '6, 8',
+            dashArray: '5, 8',
             fillColor: '#ef4444',
-            fillOpacity: 0.15
+            fillOpacity: 0.14
           });
 
-          buffer.bindPopup(`
-            <div class="p-1 text-slate-100 font-sans">
-              <div class="flex items-center gap-1.5 text-rose-400 font-bold text-xs uppercase tracking-wider mb-1">
-                🔴 HIGH-RISK SURVEILLANCE ZONE
-              </div>
-              <h4 class="font-bold text-sm text-white">${cl.name}</h4>
-              <p class="text-xs text-slate-300 mt-1">Radius: ${cl.radiusKm} km | Risk Score: <span class="text-rose-400 font-bold">${cl.riskScore}/100</span></p>
-              <div class="mt-2 text-[11px] text-slate-400 bg-slate-900 p-2 rounded border border-slate-800">
-                Proximity alerts automatically dispatched to registered livestock owners within this zone.
-              </div>
-            </div>
-          `);
-          layerGroup.addLayer(buffer);
+          redZone.on('click', () => {
+            setSelectedCluster(cl);
+            setSelectedCase(null);
+          });
+
+          layerGroup.addLayer(redZone);
         }
       });
     }
 
-    // 2. Disease Clusters (Section 11 & 13)
-    if (layers.clusters) {
+    // B. DISEASE CLUSTERS: Distinct Cluster Markers
+    if (filter.clusters) {
       state.clusters.forEach(cl => {
+        const isContained = cl.status === 'CONTAINED';
         const clusterIcon = L.divIcon({
-          className: 'custom-cluster-icon',
+          className: 'cluster-marker-div',
           html: `
-            <div class="relative flex items-center justify-center w-10 h-10">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${
-                cl.status === 'CONTAINED' ? 'bg-emerald-400' : 'bg-rose-500'
-              } opacity-60"></span>
-              <div class="relative w-8 h-8 rounded-full ${
-                cl.status === 'CONTAINED' ? 'bg-emerald-600' : 'bg-rose-600'
-              } text-white font-bold text-xs flex flex-col items-center justify-center shadow-lg border-2 border-white">
-                <span class="text-[9px] leading-none">${cl.id}</span>
-                <span class="text-[10px] leading-none">${cl.totalCases}</span>
+            <div class="relative flex items-center justify-center cursor-pointer group">
+              ${!isContained ? '<span class="animate-ping absolute inline-flex h-9 w-9 rounded-full bg-rose-500 opacity-60"></span>' : ''}
+              <div class="relative w-8 h-8 rounded-full ${isContained ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-extrabold text-[10px] flex flex-col items-center justify-center shadow-2xl border-2 border-white transition-transform group-hover:scale-110">
+                <span class="leading-none text-[8px]">${cl.id}</span>
+                <span class="leading-none text-[9px] font-mono">${cl.totalCases}</span>
               </div>
             </div>
           `,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20]
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
         });
 
-        const clusterMarker = L.marker([cl.centerCoordinates.lat, cl.centerCoordinates.lng], { icon: clusterIcon });
-        clusterMarker.bindPopup(`
-          <div class="p-2 text-slate-100 font-sans min-w-[240px]">
-            <div class="flex items-center justify-between gap-2 mb-1">
-              <span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] font-extrabold px-1.5 py-0.5 rounded">
-                ${cl.id} • ${cl.status}
-              </span>
-              <span class="text-xs font-bold text-rose-400">Score: ${cl.riskScore}/100</span>
-            </div>
-            <h3 class="font-bold text-sm text-white mb-2">${cl.name}</h3>
-            <div class="grid grid-cols-2 gap-2 text-xs mb-3 bg-slate-900/80 p-2 rounded border border-slate-800">
-              <div><span class="text-slate-400">Total Cases:</span> <b class="text-white">${cl.totalCases}</b></div>
-              <div><span class="text-slate-400">Deaths:</span> <b class="text-rose-400">${cl.totalDeaths}</b></div>
-              <div class="col-span-2"><span class="text-slate-400">Villages:</span> <b class="text-white">${cl.villages.join(', ')}</b></div>
-            </div>
-            <div class="text-[11px] text-slate-300 mb-3">
-              <span class="text-slate-400 block font-semibold mb-0.5">Primary Symptoms:</span>
-              ${cl.primarySymptoms.slice(0, 3).join(', ')}
-            </div>
-          </div>
-        `);
+        const clusterMarker = L.marker([cl.centerCoordinates.lat, cl.centerCoordinates.lng], {
+          icon: clusterIcon,
+          zIndexOffset: 1000
+        });
+
+        clusterMarker.on('click', () => {
+          setSelectedCluster(cl);
+          setSelectedCase(null);
+        });
+
         layerGroup.addLayer(clusterMarker);
       });
     }
 
-    // 3. Individual Disease Cases (Section 4 & 13)
-    if (layers.cases) {
-      state.cases.forEach(c => {
-        const color = c.riskLevel === 'HIGH' ? '#ef4444' : c.riskLevel === 'MEDIUM' ? '#f59e0b' : '#10b981';
-        const caseIcon = L.divIcon({
-          className: 'custom-case-icon',
-          html: `
-            <div class="w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-white" style="background-color: ${color}">
-              <span class="text-[10px] font-bold text-white">📍</span>
-            </div>
-          `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
+    // C. INDIVIDUAL CASES: Filtered strictly into High, Medium, and Low Risk
+    state.cases.forEach(c => {
+      if (c.riskLevel === 'HIGH' && !filter.highRisk) return;
+      if (c.riskLevel === 'MEDIUM' && !filter.mediumRisk) return;
+      if (c.riskLevel === 'LOW' && !filter.lowRisk) return;
 
-        const marker = L.marker([c.coordinates.lat, c.coordinates.lng], { icon: caseIcon });
-        marker.bindPopup(`
-          <div class="p-1 text-slate-100 font-sans text-xs">
-            <div class="flex items-center justify-between gap-1 mb-1">
-              <span class="font-bold text-white">${c.id}</span>
-              <span class="px-1.5 py-0.2 rounded font-bold text-[10px]" style="background-color: ${color}33; color: ${color}; border: 1px solid ${color}66">
-                ${c.riskLevel} (${c.riskScore})
-              </span>
-            </div>
-            <p class="text-slate-300"><b>Animal:</b> ${c.animalType} | <b>Sick:</b> ${c.sickCount}, <b>Dead:</b> ${c.deadCount}</p>
-            <p class="text-slate-300"><b>Farmer:</b> ${c.farmerName} (${c.village})</p>
-            <p class="text-slate-400 mt-1"><b>Symptoms:</b> ${c.symptoms.slice(0, 3).join(', ')}</p>
-            <div class="mt-2 text-[10px] text-slate-400 bg-slate-900 p-1.5 rounded">
-              Status: <b class="text-emerald-400">${c.status}</b>
-            </div>
+      const markerColor = c.riskLevel === 'HIGH' 
+        ? '#ef4444' 
+        : c.riskLevel === 'MEDIUM' 
+        ? '#eab308' 
+        : '#10b981';
+
+      const pinIcon = L.divIcon({
+        className: 'case-marker-div',
+        html: `
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            ${c.riskLevel === 'HIGH' ? '<span class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-rose-500 opacity-50"></span>' : ''}
+            <div class="w-4 h-4 rounded-full border-2 border-slate-900 shadow-md transition-transform group-hover:scale-125" style="background-color: ${markerColor};"></div>
           </div>
-        `);
-        layerGroup.addLayer(marker);
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
       });
-    }
 
-    // 4. Villages & Vaccination Coverage / Gaps (Section 26)
-    if (layers.villages || layers.vaccinationGaps) {
-      state.villages.forEach(v => {
-        const hasGap = v.coveragePercent < 60;
-        
-        if (layers.vaccinationGaps && hasGap) {
-          // Highlight vaccination gap with red amber hatched circle
-          const gapZone = L.circle([v.coordinates.lat, v.coordinates.lng], {
-            radius: 1200,
-            color: '#f43f5e',
-            weight: 2,
-            dashArray: '4, 4',
-            fillColor: '#f43f5e',
-            fillOpacity: 0.25
-          });
-          gapZone.bindPopup(`
-            <div class="p-1 text-slate-100 font-sans text-xs">
-              <div class="text-rose-400 font-bold uppercase text-[10px]">⚠️ VACCINATION DEFICIT GAP</div>
-              <h4 class="font-bold text-white">${v.name}</h4>
-              <p class="text-slate-300 mt-1">Coverage: <b class="text-rose-400">${v.coveragePercent}%</b> (${v.vaccinatedLivestock}/${v.totalLivestock} animals)</p>
-              <p class="text-slate-400 text-[11px] mt-1">Critical vulnerability: High transmission risk if pathogen enters village herd.</p>
-            </div>
-          `);
-          layerGroup.addLayer(gapZone);
-        }
-
-        if (layers.villages) {
-          const villageIcon = L.divIcon({
-            className: 'custom-village-icon',
-            html: `
-              <div class="bg-slate-900/90 text-slate-200 border border-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap shadow-md flex items-center gap-1">
-                <span>🏘️</span> ${v.name.split(' ')[0]} (${v.coveragePercent}%)
-              </div>
-            `,
-            iconSize: [80, 24],
-            iconAnchor: [40, 12]
-          });
-
-          const vMarker = L.marker([v.coordinates.lat, v.coordinates.lng], { icon: villageIcon });
-          vMarker.bindPopup(`
-            <div class="p-1 text-slate-100 font-sans text-xs">
-              <h4 class="font-bold text-white">${v.name}</h4>
-              <p class="text-slate-300">Total Livestock: <b>${v.totalLivestock}</b></p>
-              <p class="text-slate-300">Vaccinated: <b>${v.vaccinatedLivestock} (${v.coveragePercent}%)</b></p>
-              <p class="text-slate-400 mt-1">Risk Status: <b class="${v.activeRiskZone === 'HIGH' ? 'text-rose-400' : 'text-emerald-400'}">${v.activeRiskZone || 'NORMAL'}</b></p>
-            </div>
-          `);
-          layerGroup.addLayer(vMarker);
-        }
+      const caseMarker = L.marker([c.coordinates.lat, c.coordinates.lng], { icon: pinIcon });
+      caseMarker.on('click', () => {
+        setSelectedCase(c);
+        setSelectedCluster(null);
       });
+
+      layerGroup.addLayer(caseMarker);
+    });
+
+  }, [filter, state.cases, state.clusters]);
+
+  const resetMapView = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([DISTRICT_CENTER.lat, DISTRICT_CENTER.lng], 12);
     }
+  };
 
-    // 5. Registered Farmers (Section 14)
-    if (layers.farmers) {
-      state.farmers.forEach(f => {
-        const farmerIcon = L.divIcon({
-          className: 'custom-farmer-icon',
-          html: `
-            <div class="w-5 h-5 rounded-full bg-emerald-700 border border-emerald-400 text-white flex items-center justify-center text-[10px] shadow">
-              👨‍🌾
-            </div>
-          `,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
-        });
+  const handleZoomIn = () => {
+    if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();
+  };
 
-        const fMarker = L.marker([f.coordinates.lat, f.coordinates.lng], { icon: farmerIcon });
-        fMarker.bindPopup(`
-          <div class="p-1 text-slate-100 font-sans text-xs">
-            <span class="text-[10px] text-emerald-400 font-bold uppercase">Registered Livestock Owner</span>
-            <h4 class="font-bold text-white">${f.name}</h4>
-            <p class="text-slate-300">Phone: ${f.phone}</p>
-            <p class="text-slate-300">Village: ${f.village}</p>
-            <div class="mt-1 text-[11px] text-slate-400">
-              Animals: ${f.animals.map(a => `${a.count} ${a.species}`).join(', ')}
-            </div>
-          </div>
-        `);
-        layerGroup.addLayer(fMarker);
-      });
-    }
-
-    // 6. Veterinary Facilities & Laboratories (Section 13)
-    if (layers.vetCenters || layers.laboratories) {
-      state.facilities.forEach(fac => {
-        const isLab = fac.type === 'DIAGNOSTIC_LAB';
-        if (isLab && !layers.laboratories) return;
-        if (!isLab && !layers.vetCenters) return;
-
-        const facIcon = L.divIcon({
-          className: 'custom-facility-icon',
-          html: `
-            <div class="w-7 h-7 rounded-lg ${
-              isLab ? 'bg-purple-600 border-purple-300' : 'bg-blue-600 border-blue-300'
-            } border text-white flex items-center justify-center text-xs shadow-lg">
-              ${isLab ? '🧪' : '🏥'}
-            </div>
-          `,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14]
-        });
-
-        const facMarker = L.marker([fac.coordinates.lat, fac.coordinates.lng], { icon: facIcon });
-        facMarker.bindPopup(`
-          <div class="p-1 text-slate-100 font-sans text-xs">
-            <span class="text-[10px] ${isLab ? 'text-purple-400' : 'text-blue-400'} font-bold uppercase">
-              ${fac.type.replace('_', ' ')}
-            </span>
-            <h4 class="font-bold text-white">${fac.name}</h4>
-            <p class="text-slate-300">Contact: ${fac.contactPerson}</p>
-            <p class="text-slate-300">Phone: ${fac.phone}</p>
-          </div>
-        `);
-        layerGroup.addLayer(facMarker);
-      });
-    }
-  }, [layers, state]);
+  const handleZoomOut = () => {
+    if (mapInstanceRef.current) mapInstanceRef.current.zoomOut();
+  };
 
   return (
-    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
-      {/* Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" />
-
-      {/* Layer Control Panel Floating Overlay (Section 13) */}
-      <div className="absolute top-4 right-4 z-10 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-3.5 shadow-2xl max-w-xs text-xs space-y-2">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span className="font-bold text-white flex items-center gap-1.5 text-xs">
-            <Layers className="w-3.5 h-3.5 text-emerald-400" /> GIS Layer Controls
-          </span>
-          <span className="text-[10px] text-slate-400 uppercase font-semibold">9 Layers Active</span>
+    <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
+      {/* Top Filter Bar (Strict 4 Items Only) */}
+      <div className="absolute top-3 left-3 right-3 z-[400] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div className="bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-white shadow-xl pointer-events-auto flex items-center gap-2">
+          <Layers className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Surveillance GIS Risk Map</span>
         </div>
 
-        <div className="grid grid-cols-1 gap-1.5 max-h-72 overflow-y-auto pr-1">
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.riskZones} 
-              onChange={() => toggleLayer('riskZones')}
-              className="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">🔴 High-Risk Zones</span>
-          </label>
+        {/* 4 Strict Layer Toggles */}
+        <div className="bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-xl flex items-center gap-1 text-[11px] pointer-events-auto">
+          <button
+            onClick={() => setFilter(f => ({ ...f, highRisk: !f.highRisk }))}
+            className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+              filter.highRisk 
+                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>HIGH RISK</span>
+          </button>
 
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.clusters} 
-              onChange={() => toggleLayer('clusters')}
-              className="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">⭕ Disease Clusters (CL-001)</span>
-          </label>
+          <button
+            onClick={() => setFilter(f => ({ ...f, mediumRisk: !f.mediumRisk }))}
+            className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+              filter.mediumRisk 
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>MEDIUM</span>
+          </button>
 
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.cases} 
-              onChange={() => toggleLayer('cases')}
-              className="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">📍 Reported Disease Cases</span>
-          </label>
+          <button
+            onClick={() => setFilter(f => ({ ...f, lowRisk: !f.lowRisk }))}
+            className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+              filter.lowRisk 
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>LOW</span>
+          </button>
 
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.vaccinationGaps} 
-              onChange={() => toggleLayer('vaccinationGaps')}
-              className="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">💉 Vaccination Gaps (44% Alert)</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.villages} 
-              onChange={() => toggleLayer('villages')}
-              className="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">🏘️ Villages & Demographics</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.farmers} 
-              onChange={() => toggleLayer('farmers')}
-              className="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">👨‍🌾 Registered Livestock Owners</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.vetCenters} 
-              onChange={() => toggleLayer('vetCenters')}
-              className="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">🏥 Veterinary Hospitals & Clinics</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.laboratories} 
-              onChange={() => toggleLayer('laboratories')}
-              className="rounded bg-slate-800 border-slate-700 text-purple-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">🧪 Diagnostic Laboratories (RDDL)</span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer hover:text-white text-slate-300">
-            <input 
-              type="checkbox" 
-              checked={layers.weather} 
-              onChange={() => toggleLayer('weather')}
-              className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0"
-            />
-            <span className="flex items-center gap-1.5">🌦️ Weather & Vector Layer</span>
-          </label>
+          <button
+            onClick={() => setFilter(f => ({ ...f, clusters: !f.clusters }))}
+            className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+              filter.clusters 
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+            <span>CLUSTERS</span>
+          </button>
         </div>
       </div>
 
-      {/* Environmental & Vector Risk Indicator (Section 13 Weather Layer) */}
-      {layers.weather && (
-        <div className="absolute bottom-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-xl flex items-center gap-3 text-xs">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-            <CloudSun className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="font-semibold text-white flex items-center gap-1.5">
-              <span>District Climate Telemetry: 29.4°C</span>
-              <span className="text-slate-400">• Humidity: 76%</span>
-            </div>
-            <div className="text-[11px] text-amber-400">
-              Vector Multiplier: 1.4x (High Culicoides / Tabanid fly activity in lowlands)
-            </div>
-          </div>
+      {/* The Leaflet Map Canvas */}
+      <div ref={mapContainerRef} className="w-full h-[520px] z-0" />
+
+      {/* Floating Strict Legend (Bottom-Left) */}
+      <div className="absolute bottom-4 left-4 z-[400] bg-slate-900/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 shadow-xl text-xs space-y-1.5 max-w-[200px]">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-800 pb-1">
+          Surveillance Legend
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shrink-0"></span>
+          <span className="text-rose-300 font-semibold text-[11px]">🔴 HIGH RISK</span>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-amber-400 border border-white shrink-0"></span>
+          <span className="text-amber-300 font-semibold text-[11px]">🟡 MEDIUM RISK</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-emerald-500 border border-white shrink-0"></span>
+          <span className="text-emerald-300 font-semibold text-[11px]">🟢 LOW RISK</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3.5 h-3.5 rounded-full bg-rose-600 border border-white flex items-center justify-center text-[7px] text-white font-black shrink-0">
+            CL
+          </div>
+          <span className="text-slate-200 font-semibold text-[11px]">● DISEASE CLUSTER</span>
+        </div>
+      </div>
+
+      {/* Minimal Navigation & Reset Controls (Bottom-Right) */}
+      <div className="absolute bottom-4 right-4 z-[400] flex flex-col gap-1.5">
+        <button
+          onClick={handleZoomIn}
+          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          title="Zoom In"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          title="Zoom Out"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </button>
+        <button
+          onClick={resetMapView}
+          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          title="Reset Center View"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Concise Cluster Information Panel */}
+      {selectedCluster && (
+        <div className="absolute top-16 right-4 z-[400] w-80 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-rose-500/50 p-4 shadow-2xl space-y-3 animate-in fade-in slide-in-from-right">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="bg-rose-500/20 text-rose-300 text-xs font-black px-2 py-0.5 rounded border border-rose-500/40">
+                {selectedCluster.id}
+              </span>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                {selectedCluster.status}
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedCluster(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-sm text-white">{selectedCluster.name}</h4>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Surveillance Radius: {selectedCluster.radiusKm} km | Risk Score: <b className="text-rose-400">{selectedCluster.riskScore}/100</b>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <div>
+              <span className="text-slate-400 text-[10px] uppercase block">Total Cases</span>
+              <span className="font-black text-white text-sm">{selectedCluster.totalCases} Incidents</span>
+            </div>
+            <div>
+              <span className="text-slate-400 text-[10px] uppercase block">Deaths</span>
+              <span className="font-black text-rose-400 text-sm">{selectedCluster.totalDeaths} Animals</span>
+            </div>
+            <div className="col-span-2 pt-1 border-t border-slate-900">
+              <span className="text-slate-400 text-[10px] uppercase block">Affected Villages</span>
+              <span className="text-slate-200 font-medium">{selectedCluster.villages.join(', ')}</span>
+            </div>
+            <div className="col-span-2 pt-1 border-t border-slate-900">
+              <span className="text-slate-400 text-[10px] uppercase block">Primary Symptoms</span>
+              <span className="text-rose-300 font-medium">{selectedCluster.primarySymptoms.join(', ')}</span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400">
+            Proximity alert radius actively notifying livestock owners within {selectedCluster.radiusKm} km.
+          </p>
+        </div>
+      )}
+
+      {/* Concise Case Information Panel */}
+      {selectedCase && (
+        <div className="absolute top-16 right-4 z-[400] w-80 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-800 p-4 shadow-2xl space-y-3 animate-in fade-in slide-in-from-right">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white text-xs">{selectedCase.id}</span>
+              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${
+                selectedCase.riskLevel === 'HIGH'
+                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                  : selectedCase.riskLevel === 'MEDIUM'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              }`}>
+                {selectedCase.riskLevel}
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedCase(null)}
+              className="text-slate-400 hover:text-white p-0.5 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="text-xs space-y-1 text-slate-200">
+            <p><b>Farmer:</b> {selectedCase.farmerName} ({selectedCase.village})</p>
+            <p><b>Species:</b> {selectedCase.animalType} • {selectedCase.sickCount} Sick, {selectedCase.deadCount} Dead</p>
+            <p><b>Risk Score:</b> <span className="font-bold text-rose-400">{selectedCase.riskScore}/100</span></p>
+            <p className="text-[11px] text-slate-400 truncate">
+              <b>Symptoms:</b> {selectedCase.symptoms.join(', ')}
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setDossierCase(selectedCase);
+              setSelectedCase(null);
+            }}
+            className="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold py-2 rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1"
+          >
+            Inspect Full Case Dossier →
+          </button>
+        </div>
+      )}
+
+      {/* Case Detail Modal if clicked from GIS */}
+      {dossierCase && (
+        <CaseDetailModal
+          isOpen={true}
+          onClose={() => setDossierCase(null)}
+          caseItem={dossierCase}
+        />
       )}
     </div>
   );

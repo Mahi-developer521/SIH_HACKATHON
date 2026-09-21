@@ -4,11 +4,11 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 font-sans min-h-screen selection:bg-emerald-500 selection:text-white;
+    @apply bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-emerald-500 selection:text-white antialiased;
   }
 }
 
-/* Custom Pulsing Markers & Alerts */
+/* Custom Pulsing Markers & Sound Wave Alerts */
 @keyframes pulse-ring {
   0% {
     transform: scale(0.95);
@@ -24,40 +24,120 @@
   }
 }
 
+@keyframes sound-bar {
+  0%, 100% {
+    height: 4px;
+  }
+  50% {
+    height: 16px;
+  }
+}
+
 .pulse-red {
   animation: pulse-ring 2s infinite ease-in-out;
 }
 
+.animate-sound-1 {
+  animation: sound-bar 0.8s infinite ease-in-out;
+}
+.animate-sound-2 {
+  animation: sound-bar 0.8s infinite ease-in-out 0.2s;
+}
+.animate-sound-3 {
+  animation: sound-bar 0.8s infinite ease-in-out 0.4s;
+}
+.animate-sound-4 {
+  animation: sound-bar 0.8s infinite ease-in-out 0.6s;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #090d16;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #1e293b;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #334155;
 }
 
 /* Leaflet Map overrides for dark theme */
 .leaflet-container {
   font-family: inherit;
-  background-color: #0f172a;
+  background-color: #0b0f19;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #1e293b !important;
+  background: #0f172a !important;
   color: #f1f5f9 !important;
-  border-radius: 0.75rem !important;
-  border: 1px solid #334155;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 0.875rem !important;
+  border: 1px solid #1e293b;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }
 
 .leaflet-popup-tip {
-  background: #1e293b !important;
+  background: #0f172a !important;
+}
+
+/* Government / Public-Health Design System Component Utilities */
+@layer components {
+  /* Cards */
+  .gov-card {
+    @apply bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-sm;
+  }
+  .gov-card-interactive {
+    @apply bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-sm transition-all hover:border-slate-700 hover:bg-slate-900 cursor-pointer;
+  }
+
+  /* Form Elements */
+  .gov-label {
+    @apply text-xs font-bold text-slate-300 uppercase tracking-wider block mb-1.5;
+  }
+  .gov-input {
+    @apply w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all;
+  }
+  .gov-select {
+    @apply w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all cursor-pointer;
+  }
+  .gov-textarea {
+    @apply w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all resize-none;
+  }
+
+  /* Buttons */
+  .gov-btn-primary {
+    @apply bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+  .gov-btn-secondary {
+    @apply bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+  .gov-btn-danger {
+    @apply bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-rose-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+
+  /* Status & Risk Badges */
+  .risk-badge-high {
+    @apply inline-flex items-center gap-1.5 bg-rose-500/15 text-rose-300 border border-rose-500/40 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+  }
+  .risk-badge-medium {
+    @apply inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-300 border border-amber-500/40 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+  }
+  .risk-badge-low {
+    @apply inline-flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+  }
+
+  /* Table Headers & Rows */
+  .gov-table-header {
+    @apply bg-slate-950/80 text-slate-400 uppercase text-[11px] font-bold tracking-wider px-4 py-3 text-left border-b border-slate-800;
+  }
+  .gov-table-row {
+    @apply border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors;
+  }
+  .gov-table-cell {
+    @apply px-4 py-3.5 text-xs text-slate-200;
+  }
 }

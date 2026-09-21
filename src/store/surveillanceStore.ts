@@ -1126,7 +1126,7 @@ export function useSurveillanceStore() {
     login: (id: string, pass: string) => SurveillanceStoreManager.login(id, pass),
     quickLogin: (role: UserRole) => SurveillanceStoreManager.quickLogin(role),
     logout: () => SurveillanceStoreManager.logout(),
-    showToast: (type: 'success' | 'error' | 'info', message: string) => SurveillanceStoreManager.showToast(type, message),
+    showToast: (type: 'success' | 'error' | 'info' | 'warning', message: string, title?: string) => SurveillanceStoreManager.showToast(type, message, title),
     removeToast: (id: string) => SurveillanceStoreManager.removeToast(id),
     setActiveRole: (r: UserRole) => SurveillanceStoreManager.setActiveRole(r),
     setLanguage: (lang: Language) => SurveillanceStoreManager.setLanguage(lang),

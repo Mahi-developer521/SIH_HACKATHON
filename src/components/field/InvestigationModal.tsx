@@ -11,7 +11,8 @@ import {
   ClipboardCheck, 
   Camera, 
   ShieldAlert,
-  UploadCloud
+  UploadCloud,
+  Check
 } from 'lucide-react';
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export const InvestigationModal: React.FC<Props> = ({ isOpen, onClose, mission }) => {
-  const { state, submitFieldInvestigation } = useSurveillanceStore();
+  const { state, submitFieldInvestigation, showToast } = useSurveillanceStore();
   const lang = state.language;
   const t = (k: any) => I18nService.get(lang, k);
 
@@ -48,7 +49,7 @@ export const InvestigationModal: React.FC<Props> = ({ isOpen, onClose, mission }
   );
   const [photoFileName, setPhotoFileName] = useState<string>('field_lesion_audit.jpg');
 
-  // Section 20: Sample Collection
+  // Biological Sample Collection
   const [sampleRequired, setSampleRequired] = useState<boolean>(true);
   const [sampleType, setSampleType] = useState<
     'Oral Vesicle Swab' | 'Whole Blood' | 'Serum' | 'Nasal Swab' | 'Tissue Biopsy'
@@ -92,200 +93,167 @@ export const InvestigationModal: React.FC<Props> = ({ isOpen, onClose, mission }
       sampleType: sampleRequired ? sampleType : undefined,
       targetLabName: targetLab
     });
+    showToast('success', `Field Investigation Report (${mission.id}) submitted and sample dispatched to RDDL.`);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-8">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-400 text-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-in fade-in">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[92vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
               🔍
-            </span>
+            </div>
             <div>
-              <h3 className="text-base font-bold text-white">Field Investigation & Sample Protocol (Steps 19 & 20)</h3>
-              <p className="text-xs text-slate-400">Mission: {mission.id} • Target: {mission.targetVillage}</p>
+              <h3 className="text-base font-bold text-white">On-Site Field Investigation</h3>
+              <p className="text-xs text-slate-400">Mission {mission.id} • Village: {mission.targetVillage}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-          {/* Mission Context */}
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs text-slate-300">
-            <span className="font-semibold text-slate-400 block text-[10px] uppercase">Vet Directives:</span>
-            {mission.instructions}
-          </div>
-
-          {/* Counts */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+          {/* Tally Numbers */}
           <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Animals Examined</label>
+            <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              <label className="gov-label">Examined</label>
               <input
                 type="number"
-                min="1"
+                min={1}
                 value={examinedCount}
-                onChange={(e) => setExaminedCount(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                onChange={(e) => setExaminedCount(parseInt(e.target.value) || 0)}
+                className="gov-input text-center font-bold text-base"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-rose-400 mb-1">Confirmed Sick</label>
+            <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              <label className="gov-label text-amber-400">Confirmed Sick</label>
               <input
                 type="number"
-                min="0"
+                min={0}
                 value={sickCount}
-                onChange={(e) => setSickCount(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                onChange={(e) => setSickCount(parseInt(e.target.value) || 0)}
+                className="gov-input text-center font-bold text-base text-amber-400"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-rose-400 mb-1">Confirmed Dead</label>
+            <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              <label className="gov-label text-rose-400">Mortality</label>
               <input
                 type="number"
-                min="0"
+                min={0}
                 value={deadCount}
-                onChange={(e) => setDeadCount(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                onChange={(e) => setDeadCount(parseInt(e.target.value) || 0)}
+                className="gov-input text-center font-bold text-base text-rose-400"
               />
             </div>
           </div>
 
-          {/* Symptoms Checklist */}
+          {/* Clinician Verified Symptoms */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Clinically Verified Lesions & Symptoms
-            </label>
-            <div className="flex flex-wrap gap-1.5">
+            <label className="gov-label">Verified Clinical Lesions & Symptoms</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {CANONICAL_SYMPTOMS.map((sym) => {
                 const isSelected = observedSymptoms.includes(sym);
                 return (
                   <button
-                    type="button"
                     key={sym}
+                    type="button"
                     onClick={() => toggleSymptom(sym)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between gap-2 ${
                       isSelected
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/60 font-semibold'
-                        : 'bg-slate-950 text-slate-400 border-slate-800'
+                        ? 'bg-amber-600/20 border-amber-400 text-amber-300 font-semibold'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    {isSelected ? '✓ ' : '+ '}{sym}
+                    <span>{sym}</span>
+                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                      isSelected ? 'bg-amber-500 border-amber-400 text-slate-950' : 'border-slate-700'
+                    }`}>
+                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                    </div>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Field Photo Evidence Upload */}
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Camera className="w-3.5 h-3.5 text-amber-400" /> On-Site Clinical Lesion Photo
-              </span>
-              <label className="text-[10px] text-amber-400 hover:underline cursor-pointer flex items-center gap-1">
-                <UploadCloud className="w-3 h-3" /> Choose Photo File
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center shrink-0">
-                <img src={photoUrl} alt="Lesion inspection" className="w-full h-full object-cover" />
-              </div>
-              <div className="truncate">
-                <span className="text-xs font-semibold text-white block truncate">{photoFileName}</span>
-                <span className="text-[10px] text-slate-400">Captured at {mission.targetVillage}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Observation & Treatment */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Field Observations & Epidemiological Notes
-            </label>
-            <textarea
-              rows={2}
-              value={fieldNotes}
-              onChange={(e) => setFieldNotes(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
-            />
-          </div>
-
-          {/* Section 20: Sample Collection Module */}
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+          {/* Biological Sample Collection Card */}
+          <div className="gov-card space-y-3 border-purple-800/50">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <FlaskConical className="w-4 h-4 text-purple-400" /> Section 20: Biological Sample Collection
-              </span>
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-300">
+              <div className="flex items-center gap-2">
+                <FlaskConical className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-bold text-white">Biological Specimen Collection (RDDL)</span>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={sampleRequired}
                   onChange={(e) => setSampleRequired(e.target.checked)}
-                  className="rounded bg-slate-800 border-slate-700 text-purple-500 focus:ring-0"
+                  className="rounded border-slate-700 text-purple-600 focus:ring-purple-500"
                 />
-                <span>Sample Required by Protocol</span>
+                <span>Sample Harvested</span>
               </label>
             </div>
 
             {sampleRequired && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-900">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                    Specimen / Sample Type
-                  </label>
+                  <label className="gov-label">Specimen Matrix</label>
                   <select
                     value={sampleType}
-                    onChange={(e) => setSampleType(e.target.value as any)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                    onChange={(e: any) => setSampleType(e.target.value)}
+                    className="gov-select"
                   >
-                    <option value="Oral Vesicle Swab">Oral Vesicle / Epithelial Swab</option>
-                    <option value="Whole Blood">Whole Blood (EDTA Vacutainer)</option>
-                    <option value="Serum">Clotted Blood / Serum</option>
-                    <option value="Nasal Swab">Nasal Swab (VTM)</option>
-                    <option value="Tissue Biopsy">Coronary Band Tissue Biopsy</option>
+                    <option value="Oral Vesicle Swab">Oral Vesicle Swab (Vesicular Fluid)</option>
+                    <option value="Whole Blood">Whole Blood (EDTA Tube)</option>
+                    <option value="Serum">Serum (Red Top Tube)</option>
+                    <option value="Nasal Swab">Nasal Swab</option>
+                    <option value="Tissue Biopsy">Epithelial Tissue Biopsy</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                    Designated Diagnostic Laboratory
-                  </label>
+                  <label className="gov-label">Cold-Chain Receiving Laboratory</label>
                   <input
                     type="text"
-                    disabled
                     value={targetLab}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-400"
+                    readOnly
+                    className="gov-input bg-slate-900 text-slate-300 cursor-not-allowed text-xs"
                   />
-                </div>
-
-                <div className="col-span-full bg-purple-950/20 p-2.5 rounded-xl border border-purple-800/40 text-[11px] text-purple-200 flex items-center justify-between">
-                  <span>Auto-Generated Sample Barcode ID: <b>SMP-2046</b></span>
-                  <span className="font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                    Cold Chain: 4°C Maintained
-                  </span>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="pt-2">
+          {/* Field Notes & Verification */}
+          <div>
+            <label className="gov-label">Field Examination Observations & Clinical Notes</label>
+            <textarea
+              rows={3}
+              value={fieldNotes}
+              onChange={(e) => setFieldNotes(e.target.value)}
+              className="gov-textarea"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="gov-btn-secondary text-xs"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
-              className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2"
+              className="gov-btn-primary text-xs"
             >
-              <CheckCircle2 className="w-4 h-4" /> Save Investigation & Dispatch Sample to Lab
+              <CheckCircle2 className="w-3.5 h-3.5" /> Submit Ground Report & Sample
             </button>
           </div>
         </form>
