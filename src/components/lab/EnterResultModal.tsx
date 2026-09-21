@@ -38,19 +38,19 @@ export const EnterResultModal: React.FC<Props> = ({ isOpen, onClose, sample }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden my-6">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-xl overflow-hidden my-6">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400 font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
               🧪
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Enter Laboratory Test Result</h3>
-              <p className="text-xs text-slate-400">Sample ID: {sample.id} • {sample.sampleType}</p>
+              <h3 className="text-base font-bold text-slate-900">Enter Laboratory Test Result</h3>
+              <p className="text-xs text-slate-500">Sample ID: {sample.id} • {sample.sampleType}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -77,17 +77,17 @@ export const EnterResultModal: React.FC<Props> = ({ isOpen, onClose, sample }) =
                 {(['POSITIVE', 'NEGATIVE', 'INCONCLUSIVE'] as const).map((res) => {
                   const isSelected = result === res;
                   const activeColor = res === 'POSITIVE'
-                    ? 'bg-rose-600 text-white border-rose-500'
+                    ? 'bg-rose-50 text-rose-700 border-rose-300 ring-1 ring-rose-500'
                     : res === 'NEGATIVE'
-                    ? 'bg-emerald-600 text-white border-emerald-500'
-                    : 'bg-amber-600 text-white border-amber-500';
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-1 ring-emerald-500'
+                    : 'bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-500';
                   return (
                     <button
                       type="button"
                       key={res}
                       onClick={() => setResult(res)}
-                      className={`text-[10px] py-2.5 rounded-xl font-extrabold border transition-all ${
-                        isSelected ? `${activeColor} ring-1 ring-white/40` : 'bg-slate-950 text-slate-400 border-slate-800'
+                      className={`text-[10px] py-2.5 rounded-xl font-bold border transition-all ${
+                        isSelected ? `${activeColor} shadow-sm` : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
                       {res}
@@ -104,7 +104,7 @@ export const EnterResultModal: React.FC<Props> = ({ isOpen, onClose, sample }) =
               type="text"
               value={pathogen}
               onChange={(e) => setPathogen(e.target.value)}
-              className="gov-input font-semibold text-emerald-300"
+              className="gov-input font-semibold text-slate-900"
             />
           </div>
 
@@ -118,7 +118,7 @@ export const EnterResultModal: React.FC<Props> = ({ isOpen, onClose, sample }) =
                 onChange={(e) => setCycleThreshold(parseFloat(e.target.value) || 0)}
                 className="gov-input"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[11px] text-slate-500 mt-1 block">
                 CT values &lt; 29 indicate strong viral genome copy concentration.
               </span>
             </div>
@@ -134,7 +134,7 @@ export const EnterResultModal: React.FC<Props> = ({ isOpen, onClose, sample }) =
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

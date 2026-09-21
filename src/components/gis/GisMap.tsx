@@ -102,8 +102,7 @@ export const GisMap: React.FC = () => {
           className: 'cluster-marker-div',
           html: `
             <div class="relative flex items-center justify-center cursor-pointer group">
-              ${!isContained ? '<span class="animate-ping absolute inline-flex h-9 w-9 rounded-full bg-rose-500 opacity-60"></span>' : ''}
-              <div class="relative w-8 h-8 rounded-full ${isContained ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-extrabold text-[10px] flex flex-col items-center justify-center shadow-2xl border-2 border-white transition-transform group-hover:scale-110">
+              <div class="relative w-8 h-8 rounded-full ${isContained ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-extrabold text-[10px] flex flex-col items-center justify-center shadow-lg border-2 border-white transition-transform group-hover:scale-110">
                 <span class="leading-none text-[8px]">${cl.id}</span>
                 <span class="leading-none text-[9px] font-mono">${cl.totalCases}</span>
               </div>
@@ -134,17 +133,16 @@ export const GisMap: React.FC = () => {
       if (c.riskLevel === 'LOW' && !filter.lowRisk) return;
 
       const markerColor = c.riskLevel === 'HIGH' 
-        ? '#ef4444' 
+        ? '#e11d48' 
         : c.riskLevel === 'MEDIUM' 
-        ? '#eab308' 
-        : '#10b981';
+        ? '#d97706' 
+        : '#059669';
 
       const pinIcon = L.divIcon({
         className: 'case-marker-div',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
-            ${c.riskLevel === 'HIGH' ? '<span class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-rose-500 opacity-50"></span>' : ''}
-            <div class="w-4 h-4 rounded-full border-2 border-slate-900 shadow-md transition-transform group-hover:scale-125" style="background-color: ${markerColor};"></div>
+            <div class="w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-transform group-hover:scale-125" style="background-color: ${markerColor};"></div>
           </div>
         `,
         iconSize: [20, 20],
@@ -177,22 +175,22 @@ export const GisMap: React.FC = () => {
   };
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
+    <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
       {/* Top Filter Bar (Strict 4 Items Only) */}
       <div className="absolute top-3 left-3 right-3 z-[400] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-white shadow-xl pointer-events-auto flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 shadow-sm pointer-events-auto flex items-center gap-2">
+          <Layers className="w-3.5 h-3.5 text-blue-600" />
           <span>Surveillance GIS Risk Map</span>
         </div>
 
         {/* 4 Strict Layer Toggles */}
-        <div className="bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-xl flex items-center gap-1 text-[11px] pointer-events-auto">
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-xl border border-slate-200 shadow-sm flex items-center gap-1 text-[11px] pointer-events-auto">
           <button
             onClick={() => setFilter(f => ({ ...f, highRisk: !f.highRisk }))}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
               filter.highRisk 
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-rose-500"></span>
@@ -203,11 +201,11 @@ export const GisMap: React.FC = () => {
             onClick={() => setFilter(f => ({ ...f, mediumRisk: !f.mediumRisk }))}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
               filter.mediumRisk 
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' 
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             <span>MEDIUM</span>
           </button>
 
@@ -215,11 +213,11 @@ export const GisMap: React.FC = () => {
             onClick={() => setFilter(f => ({ ...f, lowRisk: !f.lowRisk }))}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
               filter.lowRisk 
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
             <span>LOW</span>
           </button>
 
@@ -227,11 +225,11 @@ export const GisMap: React.FC = () => {
             onClick={() => setFilter(f => ({ ...f, clusters: !f.clusters }))}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
               filter.clusters 
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' 
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
             <span>CLUSTERS</span>
           </button>
         </div>
@@ -241,27 +239,27 @@ export const GisMap: React.FC = () => {
       <div ref={mapContainerRef} className="w-full h-[520px] z-0" />
 
       {/* Floating Strict Legend (Bottom-Left) */}
-      <div className="absolute bottom-4 left-4 z-[400] bg-slate-900/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 shadow-xl text-xs space-y-1.5 max-w-[200px]">
-        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-800 pb-1">
+      <div className="absolute bottom-4 left-4 z-[400] bg-white/95 backdrop-blur-md p-3 rounded-xl border border-slate-200 shadow-md text-xs space-y-1.5 max-w-[200px]">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block border-b border-slate-200 pb-1">
           Surveillance Legend
         </span>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shrink-0"></span>
-          <span className="text-rose-300 font-semibold text-[11px]">🔴 HIGH RISK</span>
+          <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shrink-0 shadow-sm"></span>
+          <span className="text-rose-700 font-semibold text-[11px]">🔴 HIGH RISK</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-amber-400 border border-white shrink-0"></span>
-          <span className="text-amber-300 font-semibold text-[11px]">🟡 MEDIUM RISK</span>
+          <span className="w-3 h-3 rounded-full bg-amber-500 border border-white shrink-0 shadow-sm"></span>
+          <span className="text-amber-800 font-semibold text-[11px]">🟡 MEDIUM RISK</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-emerald-500 border border-white shrink-0"></span>
-          <span className="text-emerald-300 font-semibold text-[11px]">🟢 LOW RISK</span>
+          <span className="w-3 h-3 rounded-full bg-emerald-600 border border-white shrink-0 shadow-sm"></span>
+          <span className="text-emerald-800 font-semibold text-[11px]">🟢 LOW RISK</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 rounded-full bg-rose-600 border border-white flex items-center justify-center text-[7px] text-white font-black shrink-0">
+          <div className="w-3.5 h-3.5 rounded-full bg-rose-600 border border-white flex items-center justify-center text-[7px] text-white font-black shrink-0 shadow-sm">
             CL
           </div>
-          <span className="text-slate-200 font-semibold text-[11px]">● DISEASE CLUSTER</span>
+          <span className="text-slate-700 font-semibold text-[11px]">● DISEASE CLUSTER</span>
         </div>
       </div>
 
@@ -269,21 +267,21 @@ export const GisMap: React.FC = () => {
       <div className="absolute bottom-4 right-4 z-[400] flex flex-col gap-1.5">
         <button
           onClick={handleZoomIn}
-          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          className="bg-white/95 hover:bg-slate-50 text-slate-700 p-2 rounded-xl border border-slate-200 shadow-md transition-all"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          className="bg-white/95 hover:bg-slate-50 text-slate-700 p-2 rounded-xl border border-slate-200 shadow-md transition-all"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={resetMapView}
-          className="bg-slate-900/95 hover:bg-slate-800 text-slate-200 p-2 rounded-xl border border-slate-800 shadow-xl transition-all"
+          className="bg-white/95 hover:bg-slate-50 text-slate-700 p-2 rounded-xl border border-slate-200 shadow-md transition-all"
           title="Reset Center View"
         >
           <RotateCcw className="w-4 h-4" />
@@ -292,51 +290,51 @@ export const GisMap: React.FC = () => {
 
       {/* Concise Cluster Information Panel */}
       {selectedCluster && (
-        <div className="absolute top-16 right-4 z-[400] w-80 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-rose-500/50 p-4 shadow-2xl space-y-3 animate-in fade-in slide-in-from-right">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="absolute top-16 right-4 z-[400] w-80 bg-white/95 backdrop-blur-md rounded-2xl border border-rose-200 p-4 shadow-xl space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <div className="flex items-center gap-2">
-              <span className="bg-rose-500/20 text-rose-300 text-xs font-black px-2 py-0.5 rounded border border-rose-500/40">
+              <span className="bg-rose-50 text-rose-700 text-xs font-black px-2 py-0.5 rounded border border-rose-200">
                 {selectedCluster.id}
               </span>
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 {selectedCluster.status}
               </span>
             </div>
             <button
               onClick={() => setSelectedCluster(null)}
-              className="text-slate-400 hover:text-white p-0.5 rounded"
+              className="text-slate-400 hover:text-slate-700 p-0.5 rounded"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div>
-            <h4 className="font-bold text-sm text-white">{selectedCluster.name}</h4>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Surveillance Radius: {selectedCluster.radiusKm} km | Risk Score: <b className="text-rose-400">{selectedCluster.riskScore}/100</b>
+            <h4 className="font-bold text-sm text-slate-900">{selectedCluster.name}</h4>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Surveillance Radius: {selectedCluster.radiusKm} km | Risk Score: <b className="text-rose-600">{selectedCluster.riskScore}/100</b>
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
             <div>
-              <span className="text-slate-400 text-[10px] uppercase block">Total Cases</span>
-              <span className="font-black text-white text-sm">{selectedCluster.totalCases} Incidents</span>
+              <span className="text-slate-500 text-[10px] uppercase block">Total Cases</span>
+              <span className="font-black text-slate-900 text-sm">{selectedCluster.totalCases} Incidents</span>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] uppercase block">Deaths</span>
-              <span className="font-black text-rose-400 text-sm">{selectedCluster.totalDeaths} Animals</span>
+              <span className="text-slate-500 text-[10px] uppercase block">Deaths</span>
+              <span className="font-black text-rose-600 text-sm">{selectedCluster.totalDeaths} Animals</span>
             </div>
-            <div className="col-span-2 pt-1 border-t border-slate-900">
-              <span className="text-slate-400 text-[10px] uppercase block">Affected Villages</span>
-              <span className="text-slate-200 font-medium">{selectedCluster.villages.join(', ')}</span>
+            <div className="col-span-2 pt-1 border-t border-slate-200">
+              <span className="text-slate-500 text-[10px] uppercase block">Affected Villages</span>
+              <span className="text-slate-800 font-medium">{selectedCluster.villages.join(', ')}</span>
             </div>
-            <div className="col-span-2 pt-1 border-t border-slate-900">
-              <span className="text-slate-400 text-[10px] uppercase block">Primary Symptoms</span>
-              <span className="text-rose-300 font-medium">{selectedCluster.primarySymptoms.join(', ')}</span>
+            <div className="col-span-2 pt-1 border-t border-slate-200">
+              <span className="text-slate-500 text-[10px] uppercase block">Primary Symptoms</span>
+              <span className="text-rose-700 font-medium">{selectedCluster.primarySymptoms.join(', ')}</span>
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500">
             Proximity alert radius actively notifying livestock owners within {selectedCluster.radiusKm} km.
           </p>
         </div>
@@ -344,33 +342,33 @@ export const GisMap: React.FC = () => {
 
       {/* Concise Case Information Panel */}
       {selectedCase && (
-        <div className="absolute top-16 right-4 z-[400] w-80 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-800 p-4 shadow-2xl space-y-3 animate-in fade-in slide-in-from-right">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="absolute top-16 right-4 z-[400] w-80 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-4 shadow-xl space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white text-xs">{selectedCase.id}</span>
+              <span className="font-bold text-slate-900 text-xs">{selectedCase.id}</span>
               <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${
                 selectedCase.riskLevel === 'HIGH'
-                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                  ? 'bg-rose-50 text-rose-700 border-rose-200'
                   : selectedCase.riskLevel === 'MEDIUM'
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
               }`}>
                 {selectedCase.riskLevel}
               </span>
             </div>
             <button
               onClick={() => setSelectedCase(null)}
-              className="text-slate-400 hover:text-white p-0.5 rounded"
+              className="text-slate-400 hover:text-slate-700 p-0.5 rounded"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="text-xs space-y-1 text-slate-200">
+          <div className="text-xs space-y-1 text-slate-700">
             <p><b>Farmer:</b> {selectedCase.farmerName} ({selectedCase.village})</p>
             <p><b>Species:</b> {selectedCase.animalType} • {selectedCase.sickCount} Sick, {selectedCase.deadCount} Dead</p>
-            <p><b>Risk Score:</b> <span className="font-bold text-rose-400">{selectedCase.riskScore}/100</span></p>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p><b>Risk Score:</b> <span className="font-bold text-rose-600">{selectedCase.riskScore}/100</span></p>
+            <p className="text-[11px] text-slate-500 truncate">
               <b>Symptoms:</b> {selectedCase.symptoms.join(', ')}
             </p>
           </div>
@@ -380,7 +378,7 @@ export const GisMap: React.FC = () => {
               setDossierCase(selectedCase);
               setSelectedCase(null);
             }}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold py-2 rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1"
           >
             Inspect Full Case Dossier →
           </button>

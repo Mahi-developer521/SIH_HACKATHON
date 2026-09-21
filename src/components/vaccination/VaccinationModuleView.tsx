@@ -78,17 +78,17 @@ export const VaccinationModuleView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <Syringe className="w-6 h-6 text-emerald-400" /> District Vaccination Surveillance
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <Syringe className="w-6 h-6 text-blue-600" /> District Vaccination Surveillance
             </h1>
-            <span className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-full font-bold">
+            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-full font-bold">
               NADCP Phase-III Protocol
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             District prophylaxis coverage, cold-chain deployment tracking, and ring-vaccination perimeter enforcement.
           </p>
         </div>
@@ -109,7 +109,7 @@ export const VaccinationModuleView: React.FC = () => {
           title="Overall Coverage"
           value={`${overallCoverage}%`}
           subtext="Target: 85% Herd Immunity"
-          icon={<ShieldCheck className="w-5 h-5" />}
+          icon={<ShieldCheck className="w-5 h-5 text-emerald-600" />}
           accentColor="emerald"
         />
 
@@ -117,7 +117,7 @@ export const VaccinationModuleView: React.FC = () => {
           title="Total Vaccinated"
           value={totalVaccinated}
           subtext="Certified within 6 months"
-          icon={<CheckCircle2 className="w-5 h-5" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-blue-600" />}
           accentColor="blue"
         />
 
@@ -125,7 +125,7 @@ export const VaccinationModuleView: React.FC = () => {
           title="Due for Booster"
           value={dueSoon}
           subtext="Scheduled within 30 days"
-          icon={<Clock className="w-5 h-5" />}
+          icon={<Clock className="w-5 h-5 text-amber-600" />}
           accentColor="amber"
         />
 
@@ -133,7 +133,7 @@ export const VaccinationModuleView: React.FC = () => {
           title="Critical Overdue"
           value={overdue}
           subtext="Requires immediate field visit"
-          icon={<AlertTriangle className="w-5 h-5" />}
+          icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
           accentColor="rose"
         />
       </div>
@@ -143,7 +143,7 @@ export const VaccinationModuleView: React.FC = () => {
         <CardHeader
           title="District Village Prophylaxis Coverage"
           subtitle="Real-time epidemiological gap analysis identifying high-vulnerability transmission pockets"
-          icon={<Activity className="w-5 h-5 text-emerald-400" />}
+          icon={<Activity className="w-5 h-5 text-blue-600" />}
         />
         <CardBody className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -154,17 +154,17 @@ export const VaccinationModuleView: React.FC = () => {
                   key={vc.village}
                   className={`p-4 rounded-xl border space-y-2 ${
                     isDeficit
-                      ? 'bg-rose-950/20 border-rose-600/50 shadow-md shadow-rose-950/20'
-                      : 'bg-slate-950/60 border-slate-800'
+                      ? 'bg-rose-50/60 border-rose-200 shadow-sm'
+                      : 'bg-slate-50/80 border-slate-200'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-white truncate">{vc.village}</span>
+                    <span className="font-bold text-xs text-slate-900 truncate">{vc.village}</span>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                         isDeficit
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                          ? 'bg-rose-100 text-rose-700 border-rose-200'
+                          : 'bg-emerald-100 text-emerald-800 border-emerald-200'
                       }`}
                     >
                       {vc.coverage}%
@@ -172,19 +172,19 @@ export const VaccinationModuleView: React.FC = () => {
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        isDeficit ? 'bg-rose-500' : 'bg-emerald-500'
+                        isDeficit ? 'bg-rose-500' : 'bg-emerald-600'
                       }`}
                       style={{ width: `${vc.coverage}%` }}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
                     <span>{vc.vaccinated} / {vc.total} vaccinated</span>
                     {isDeficit && (
-                      <span className="text-rose-400 font-bold flex items-center gap-0.5">
+                      <span className="text-rose-600 font-bold flex items-center gap-0.5">
                         <AlertTriangle className="w-3 h-3" /> Deficit
                       </span>
                     )}
@@ -201,7 +201,7 @@ export const VaccinationModuleView: React.FC = () => {
         <CardHeader
           title="Registered Herd Vaccination Ledger"
           subtitle="Individual electronic ear-tag records and booster due dates"
-          icon={<Calendar className="w-5 h-5 text-blue-400" />}
+          icon={<Calendar className="w-5 h-5 text-blue-600" />}
           action={
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -211,7 +211,7 @@ export const VaccinationModuleView: React.FC = () => {
                   placeholder="Filter tag, species..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  className="bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
               </div>
             </div>
@@ -224,8 +224,8 @@ export const VaccinationModuleView: React.FC = () => {
               description="No livestock records match your current search criteria."
             />
           ) : (
-            <table className="w-full text-left text-xs text-slate-200">
-              <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800 text-[11px]">
+            <table className="w-full text-left text-xs text-slate-800">
+              <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200 text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Tag ID / Ear Tag</th>
                   <th className="py-3 px-4">Species & Age</th>
@@ -236,36 +236,36 @@ export const VaccinationModuleView: React.FC = () => {
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200">
                 {filteredRecords.map((rec) => {
                   const isOver = rec.status === 'OVERDUE';
                   const isDue = rec.status === 'DUE';
                   return (
                     <tr
                       key={rec.tagId}
-                      className={`hover:bg-slate-800/40 transition-colors ${
-                        isOver ? 'bg-rose-950/10' : ''
+                      className={`hover:bg-slate-50 transition-colors ${
+                        isOver ? 'bg-rose-50/40' : ''
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-mono font-bold text-white">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
                         {rec.tagId}
                       </td>
 
                       <td className="py-3.5 px-4 capitalize">
-                        <span className="font-semibold text-slate-200">{rec.species}</span>
+                        <span className="font-semibold text-slate-800">{rec.species}</span>
                         <span className="text-slate-500 text-[11px] block">{rec.age}</span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-slate-300 font-medium">
+                      <td className="py-3.5 px-4 text-slate-700 font-medium">
                         {rec.vaccine}
                       </td>
 
-                      <td className="py-3.5 px-4 text-slate-400 font-mono">
+                      <td className="py-3.5 px-4 text-slate-500 font-mono">
                         {rec.lastDate}
                       </td>
 
                       <td className="py-3.5 px-4 font-mono font-semibold">
-                        <span className={isOver ? 'text-rose-400' : isDue ? 'text-amber-400' : 'text-slate-400'}>
+                        <span className={isOver ? 'text-rose-600' : isDue ? 'text-amber-600' : 'text-slate-600'}>
                           {rec.dueDate}
                         </span>
                       </td>
@@ -287,7 +287,7 @@ export const VaccinationModuleView: React.FC = () => {
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <Button variant="outline" size="sm">
+                        <Button variant="primary" size="sm">
                           Log Dose
                         </Button>
                       </td>

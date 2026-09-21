@@ -41,7 +41,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans antialiased selection:bg-blue-600 selection:text-white">
       {/* Universal Left Sidebar */}
       <Sidebar
         currentSection={currentSection}
@@ -61,9 +61,9 @@ export function App() {
 
         {/* Global Offline Mode Status Banner (if offline) */}
         {state.isOffline && (
-          <div className="bg-amber-950/80 border-b border-amber-600/60 px-4 py-2 text-xs text-amber-200 flex items-center justify-between">
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-800 flex items-center justify-between">
             <div className="flex items-center gap-2 max-w-4xl">
-              <WifiOff className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+              <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
                 <b>{t('offline')}:</b> {t('offlineAlert')}
               </span>
@@ -71,7 +71,7 @@ export function App() {
             {state.offlineOutbox.length > 0 && (
               <button
                 onClick={() => syncOfflineOutbox()}
-                className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-2.5 py-1 rounded text-[11px] transition-colors flex items-center gap-1 shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition-colors flex items-center gap-1 shrink-0 shadow-sm"
               >
                 <RefreshCw className="w-3 h-3" />
                 {t('syncNow')} ({state.offlineOutbox.length})
@@ -127,13 +127,13 @@ export function App() {
         </main>
 
         {/* Universal Footer */}
-        <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-4 sm:px-6 text-center text-xs text-slate-500 mt-auto">
+        <footer className="border-t border-slate-200 bg-white py-4 px-4 sm:px-6 text-center text-xs text-slate-500 mt-auto">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
               <span>{t('brandTitle')} • Department of Animal Husbandry & Dairying</span>
             </div>
-            <span className="text-[11px] text-slate-600">
+            <span className="text-[11px] text-slate-500">
               Smart India Hackathon • National Biosecurity Command System
             </span>
           </div>
@@ -151,29 +151,29 @@ export function App() {
         {state.toasts?.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start gap-2.5 p-3.5 rounded-xl shadow-2xl text-xs backdrop-blur-md border transition-all ${
+            className={`pointer-events-auto flex items-start gap-2.5 p-3.5 rounded-xl shadow-lg text-xs border transition-all ${
               toast.type === 'error'
-                ? 'bg-rose-950/95 text-rose-200 border-rose-700/80 shadow-rose-950/60'
+                ? 'bg-white text-slate-900 border-rose-300'
                 : toast.type === 'warning'
-                ? 'bg-amber-950/95 text-amber-200 border-amber-700/80 shadow-amber-950/60'
+                ? 'bg-white text-slate-900 border-amber-300'
                 : toast.type === 'info'
-                ? 'bg-blue-950/95 text-blue-200 border-blue-700/80 shadow-blue-950/60'
-                : 'bg-emerald-950/95 text-emerald-200 border-emerald-700/80 shadow-emerald-950/60'
+                ? 'bg-white text-slate-900 border-blue-300'
+                : 'bg-white text-slate-900 border-emerald-300'
             }`}
           >
             <div className="shrink-0 mt-0.5">
-              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
-              {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
-              {toast.type === 'info' && <Info className="w-4 h-4 text-blue-400" />}
-              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600" />}
+              {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-600" />}
+              {toast.type === 'info' && <Info className="w-4 h-4 text-blue-600" />}
+              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
             </div>
             <div className="flex-1">
-              {toast.title && <p className="font-bold leading-tight">{toast.title}</p>}
-              <p className="text-slate-300 text-[11px] mt-0.5 leading-snug">{toast.message}</p>
+              {toast.title && <p className="font-bold text-slate-900 leading-tight">{toast.title}</p>}
+              <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{toast.message}</p>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
               title="Dismiss notification"
             >
               <X className="w-3.5 h-3.5" />

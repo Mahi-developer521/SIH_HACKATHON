@@ -23,19 +23,19 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
-    high: 'bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold',
-    medium: 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold',
-    low: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold',
-    danger: 'bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold',
-    warning: 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold',
-    success: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold',
-    info: 'bg-blue-500/15 text-blue-300 border border-blue-500/30 font-semibold',
-    neutral: 'bg-slate-800/80 text-slate-300 border border-slate-700/80 font-medium'
+    high: 'bg-rose-50 text-rose-700 border border-rose-200 font-bold',
+    medium: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold',
+    low: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold',
+    danger: 'bg-rose-50 text-rose-700 border border-rose-200 font-bold',
+    warning: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold',
+    success: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold',
+    info: 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold',
+    neutral: 'bg-slate-100 text-slate-700 border border-slate-200 font-medium'
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full tracking-wide uppercase select-none ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center rounded-full tracking-wide select-none ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
     >
       {icon && <span className="shrink-0">{icon}</span>}
       <span>{children}</span>
@@ -53,7 +53,7 @@ export const RiskBadge: React.FC<{ risk: RiskLevel; size?: 'sm' | 'md'; showIcon
       <Badge
         variant="high"
         size={size}
-        icon={showIcon ? <AlertCircle className={size === 'sm' ? 'w-3 h-3 text-rose-400' : 'w-3.5 h-3.5 text-rose-400'} /> : undefined}
+        icon={showIcon ? <AlertCircle className={size === 'sm' ? 'w-3 h-3 text-rose-600' : 'w-3.5 h-3.5 text-rose-600'} /> : undefined}
       >
         High Risk
       </Badge>
@@ -64,7 +64,7 @@ export const RiskBadge: React.FC<{ risk: RiskLevel; size?: 'sm' | 'md'; showIcon
       <Badge
         variant="medium"
         size={size}
-        icon={showIcon ? <AlertTriangle className={size === 'sm' ? 'w-3 h-3 text-amber-400' : 'w-3.5 h-3.5 text-amber-400'} /> : undefined}
+        icon={showIcon ? <AlertTriangle className={size === 'sm' ? 'w-3 h-3 text-amber-600' : 'w-3.5 h-3.5 text-amber-600'} /> : undefined}
       >
         Moderate
       </Badge>
@@ -74,7 +74,7 @@ export const RiskBadge: React.FC<{ risk: RiskLevel; size?: 'sm' | 'md'; showIcon
     <Badge
       variant="low"
       size={size}
-      icon={showIcon ? <CheckCircle2 className={size === 'sm' ? 'w-3 h-3 text-emerald-400' : 'w-3.5 h-3.5 text-emerald-400'} /> : undefined}
+      icon={showIcon ? <CheckCircle2 className={size === 'sm' ? 'w-3 h-3 text-emerald-600' : 'w-3.5 h-3.5 text-emerald-600'} /> : undefined}
     >
       Low Risk
     </Badge>
@@ -87,19 +87,20 @@ export const StatusBadge: React.FC<{ status: CaseStatus | string; size?: 'sm' | 
 }) => {
   switch (status) {
     case 'REPORTED':
-      return <Badge variant="warning" size={size} icon={<Clock className="w-3 h-3" />}>Reported</Badge>;
+      return <Badge variant="warning" size={size} icon={<Clock className="w-3 h-3 text-amber-600" />}>Reported</Badge>;
     case 'TRIAGED':
-      return <Badge variant="info" size={size} icon={<Activity className="w-3 h-3" />}>Triaged</Badge>;
+      return <Badge variant="info" size={size} icon={<Activity className="w-3 h-3 text-blue-600" />}>Triaged</Badge>;
     case 'INVESTIGATING':
-      return <Badge variant="warning" size={size} icon={<Activity className="w-3 h-3" />}>Investigating</Badge>;
+      return <Badge variant="warning" size={size} icon={<Activity className="w-3 h-3 text-amber-600" />}>Investigating</Badge>;
     case 'SAMPLE_COLLECTED':
-      return <Badge variant="info" size={size} icon={<Clock className="w-3 h-3" />}>Sample Collected</Badge>;
+      return <Badge variant="info" size={size} icon={<Clock className="w-3 h-3 text-blue-600" />}>Sample Collected</Badge>;
     case 'LAB_CONFIRMED':
-      return <Badge variant="danger" size={size} icon={<ShieldAlert className="w-3 h-3" />}>Lab Confirmed</Badge>;
+      return <Badge variant="danger" size={size} icon={<ShieldAlert className="w-3 h-3 text-rose-600" />}>Lab Confirmed</Badge>;
     case 'INTERVENED':
-      return <Badge variant="info" size={size} icon={<Clock className="w-3 h-3" />}>Intervention Active</Badge>;
+      return <Badge variant="info" size={size} icon={<Clock className="w-3 h-3 text-blue-600" />}>Intervention Active</Badge>;
     case 'RESOLVED':
-      return <Badge variant="success" size={size} icon={<Check className="w-3 h-3" />}>Resolved</Badge>;
+    case 'CONTAINED':
+      return <Badge variant="success" size={size} icon={<Check className="w-3 h-3 text-emerald-600" />}>Resolved</Badge>;
     default:
       return <Badge variant="neutral" size={size}>{status}</Badge>;
   }

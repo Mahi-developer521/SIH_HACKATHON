@@ -320,55 +320,52 @@ export const MasterFlowView: React.FC = () => {
   const [selectedStep, setSelectedStep] = useState<StepNode>(MASTER_STEPS[state.activeStep - 1] || MASTER_STEPS[0]);
 
   const categoryColors = {
-    FARMER: 'border-emerald-500/60 bg-emerald-950/40 text-emerald-300',
-    AI: 'border-purple-500/60 bg-purple-950/40 text-purple-300',
-    GIS: 'border-cyan-500/60 bg-cyan-950/40 text-cyan-300',
-    VET: 'border-blue-500/60 bg-blue-950/40 text-blue-300',
-    FIELD: 'border-amber-500/60 bg-amber-950/40 text-amber-300',
-    LAB: 'border-rose-500/60 bg-rose-950/40 text-rose-300',
-    MONITORING: 'border-teal-500/60 bg-teal-950/40 text-teal-300'
+    FARMER: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    AI: 'border-purple-200 bg-purple-50 text-purple-800',
+    GIS: 'border-blue-200 bg-blue-50 text-blue-800',
+    VET: 'border-indigo-200 bg-indigo-50 text-indigo-800',
+    FIELD: 'border-amber-200 bg-amber-50 text-amber-800',
+    LAB: 'border-rose-200 bg-rose-50 text-rose-800',
+    MONITORING: 'border-teal-200 bg-teal-50 text-teal-800'
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'FARMER': return '👨‍🌾';
-      case 'AI': return <Bot className="w-4 h-4 text-purple-400" />;
-      case 'GIS': return <Map className="w-4 h-4 text-cyan-400" />;
-      case 'VET': return <Stethoscope className="w-4 h-4 text-blue-400" />;
-      case 'FIELD': return <ClipboardCheck className="w-4 h-4 text-amber-400" />;
-      case 'LAB': return <FlaskConical className="w-4 h-4 text-rose-400" />;
-      default: return <RefreshCw className="w-4 h-4 text-teal-400" />;
+      case 'AI': return <Bot className="w-4 h-4 text-purple-600" />;
+      case 'GIS': return <Map className="w-4 h-4 text-blue-600" />;
+      case 'VET': return <Stethoscope className="w-4 h-4 text-indigo-600" />;
+      case 'FIELD': return <ClipboardCheck className="w-4 h-4 text-amber-600" />;
+      case 'LAB': return <FlaskConical className="w-4 h-4 text-rose-600" />;
+      default: return <RefreshCw className="w-4 h-4 text-teal-600" />;
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 rounded-2xl p-6 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-emerald-500/40">
+              <span className="bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded border border-blue-200">
                 Master Architecture View
               </span>
-              <span className="text-slate-400 text-xs">All 32 Steps in One Living Flowchart</span>
+              <span className="text-slate-500 text-xs">All 32 Steps in One Living Flowchart</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               End-to-End Surveillance & Response Pipeline
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl">
+            <p className="text-sm text-slate-600 mt-1 max-w-3xl">
               This interactive inspector tracks how an individual disease signal travels from the farmer's mobile report through AI validation, spatio-temporal clustering, GIS risk zones, veterinary review, field investigation, lab testing, ring vaccination intervention, and continuous monitoring loops.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
+          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl">
             <div className="text-right">
-              <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Active State Step</div>
-              <div className="text-lg font-bold text-emerald-400 flex items-center gap-1.5 justify-end">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
+              <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Active State Step</div>
+              <div className="text-lg font-bold text-blue-700 flex items-center gap-2 justify-end">
+                <span className="inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
                 Step {state.activeStep} of 32
               </div>
             </div>
@@ -395,12 +392,12 @@ export const MasterFlowView: React.FC = () => {
                   }}
                   className={`cursor-pointer rounded-xl border p-3.5 transition-all relative overflow-hidden ${
                     isSelected 
-                      ? 'border-emerald-400 bg-slate-800/90 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400' 
-                      : 'border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-800/40'
+                      ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-1 ring-blue-600' 
+                      : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50/50'
                   }`}
                 >
                   {isCurrent && (
-                    <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-bl">
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-bl">
                       Active Now
                     </div>
                   )}
@@ -409,14 +406,14 @@ export const MasterFlowView: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border ${
                         isCurrent 
-                          ? 'bg-emerald-500 text-slate-950 border-emerald-400' 
+                          ? 'bg-blue-600 text-white border-blue-600' 
                           : isPast 
-                            ? 'bg-slate-800 text-emerald-400 border-emerald-500/40' 
-                            : 'bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                            : 'bg-slate-100 text-slate-500 border-slate-200'
                       }`}>
                         {stepNode.step}
                       </span>
-                      <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+                      <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                         {getCategoryIcon(stepNode.category)} {stepNode.role}
                       </span>
                     </div>
@@ -426,11 +423,11 @@ export const MasterFlowView: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1 line-clamp-1">
                     {stepNode.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 line-clamp-2">
+                  <p className="text-xs text-slate-500 line-clamp-2">
                     {stepNode.description}
                   </p>
                 </div>
@@ -441,39 +438,39 @@ export const MasterFlowView: React.FC = () => {
 
         {/* Right Col: Deep Step Details Card */}
         <div className="space-y-4">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sticky top-24 shadow-xl">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sticky top-24 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded border ${categoryColors[selectedStep.category]}`}>
                 Step {selectedStep.step} Detail
               </span>
-              <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
+              <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
                 {getCategoryIcon(selectedStep.category)} Role: {selectedStep.role}
               </span>
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-3">
+            <h3 className="text-xl font-bold text-slate-900 mb-3">
               {selectedStep.title}
             </h3>
 
-            <p className="text-sm text-slate-300 leading-relaxed mb-6">
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">
               {selectedStep.description}
             </p>
 
-            <div className="space-y-4 border-t border-slate-800 pt-4 text-xs">
+            <div className="space-y-4 border-t border-slate-200 pt-4 text-xs">
               <div>
-                <span className="font-semibold text-slate-400 uppercase tracking-wider text-[11px] block mb-1">
+                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[11px] block mb-1">
                   Inputs & Signals:
                 </span>
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 text-slate-200">
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-800">
                   {selectedStep.inputs}
                 </div>
               </div>
 
               <div>
-                <span className="font-semibold text-slate-400 uppercase tracking-wider text-[11px] block mb-1">
+                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[11px] block mb-1">
                   Outputs & Generated Artifacts:
                 </span>
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 text-emerald-400 font-medium">
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-blue-700 font-semibold">
                   {selectedStep.outputs}
                 </div>
               </div>
@@ -481,7 +478,7 @@ export const MasterFlowView: React.FC = () => {
               <div className="pt-2">
                 <button
                   onClick={() => setActiveStep(selectedStep.step)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-xs flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm text-xs flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Set as Current Active Step
                 </button>

@@ -86,10 +86,9 @@ export const Navbar: React.FC = () => {
       <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 border-b border-emerald-800/30 px-4 py-1.5 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
           </span>
-          <span className="font-semibold text-emerald-400 hidden sm:inline">{t('nationalSystem')}</span>
+          <span className="font-semibold text-blue-600 hidden sm:inline">{t('nationalSystem')}</span>
           <span className="text-slate-600 hidden sm:inline">•</span>
           
           {/* Outbreak Status Indicator */}
@@ -101,7 +100,7 @@ export const Navbar: React.FC = () => {
             )}
             {state.containmentStatus === 'CONTROLLED' && (
               <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 text-[10px]">
-                <Radio className="w-3 h-3 text-amber-400 animate-pulse" /> {t('controlled')}
+                <Radio className="w-3 h-3 text-amber-400" /> {t('controlled')}
               </span>
             )}
             {state.containmentStatus === 'CONTAINED' && (
@@ -119,7 +118,7 @@ export const Navbar: React.FC = () => {
             onClick={() => setIsOffline(!state.isOffline)}
             className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold border flex items-center gap-1 transition-all ${
               state.isOffline 
-                ? 'bg-rose-600/30 text-rose-300 border-rose-500 animate-pulse' 
+                ? 'bg-rose-600/30 text-rose-300 border-rose-500' 
                 : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
             }`}
             title="Toggle Network Connectivity Simulation"
@@ -132,7 +131,7 @@ export const Navbar: React.FC = () => {
           {state.offlineOutbox.length > 0 && (
             <button
               onClick={() => syncOfflineOutbox()}
-              className="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm shadow-amber-600/40 animate-bounce"
+              className="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm"
               title="Click to sync queued offline reports"
             >
               <RefreshCw className="w-3 h-3" />

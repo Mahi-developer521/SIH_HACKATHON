@@ -134,30 +134,30 @@ export const AlertCenterView: React.FC = () => {
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case 'CRITICAL':
-        return <Badge variant="danger" size="sm" icon={<Flame className="w-3 h-3 text-rose-400" />}>Critical Outbreak</Badge>;
+        return <Badge variant="danger" size="sm" icon={<Flame className="w-3 h-3 text-rose-600" />}>Critical Outbreak</Badge>;
       case 'HIGH':
-        return <Badge variant="danger" size="sm" icon={<ShieldAlert className="w-3 h-3 text-rose-400" />}>High Priority</Badge>;
+        return <Badge variant="danger" size="sm" icon={<ShieldAlert className="w-3 h-3 text-rose-600" />}>High Priority</Badge>;
       case 'WARNING':
-        return <Badge variant="warning" size="sm" icon={<AlertTriangle className="w-3 h-3 text-amber-400" />}>Warning / Advisory</Badge>;
+        return <Badge variant="warning" size="sm" icon={<AlertTriangle className="w-3 h-3 text-amber-600" />}>Warning / Advisory</Badge>;
       default:
-        return <Badge variant="info" size="sm" icon={<Bell className="w-3 h-3 text-blue-400" />}>Surveillance Notice</Badge>;
+        return <Badge variant="info" size="sm" icon={<Bell className="w-3 h-3 text-blue-600" />}>Surveillance Notice</Badge>;
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Alert Center Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <Bell className="w-6 h-6 text-amber-400" /> Alert Command Center
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <Bell className="w-6 h-6 text-blue-600" /> Alert Command Center
             </h1>
-            <span className="bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs px-2.5 py-0.5 rounded-full font-bold">
+            <span className="bg-rose-50 text-rose-700 border border-rose-200 text-xs px-2.5 py-0.5 rounded-full font-bold">
               {allAlerts.filter(a => a.tier === 'CRITICAL' || a.tier === 'HIGH').length} Urgent
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Real-time geospatial early warning signals, epidemic cluster triggers, and priority response directives.
           </p>
         </div>
@@ -173,13 +173,13 @@ export const AlertCenterView: React.FC = () => {
       </div>
 
       {/* Tier Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto text-xs font-semibold">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-xs font-semibold">
         <button
           onClick={() => setActiveTier('ALL')}
           className={`px-3 py-1.5 rounded-xl transition-all ${
             activeTier === 'ALL'
-              ? 'bg-slate-800 text-white border border-slate-700'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
           }`}
         >
           All Alerts ({allAlerts.length})
@@ -188,8 +188,8 @@ export const AlertCenterView: React.FC = () => {
           onClick={() => setActiveTier('CRITICAL')}
           className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             activeTier === 'CRITICAL'
-              ? 'bg-rose-600/20 text-rose-300 border border-rose-500/40 font-bold'
-              : 'text-slate-400 hover:text-rose-300'
+              ? 'bg-rose-600 text-white font-bold shadow-sm'
+              : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -199,8 +199,8 @@ export const AlertCenterView: React.FC = () => {
           onClick={() => setActiveTier('HIGH')}
           className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             activeTier === 'HIGH'
-              ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold'
-              : 'text-slate-400 hover:text-rose-400'
+              ? 'bg-rose-600 text-white font-bold shadow-sm'
+              : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
           }`}
         >
           High ({allAlerts.filter(a => a.tier === 'HIGH').length})
@@ -209,8 +209,8 @@ export const AlertCenterView: React.FC = () => {
           onClick={() => setActiveTier('WARNING')}
           className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             activeTier === 'WARNING'
-              ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold'
-              : 'text-slate-400 hover:text-amber-400'
+              ? 'bg-amber-600 text-white font-bold shadow-sm'
+              : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
           }`}
         >
           Warning ({allAlerts.filter(a => a.tier === 'WARNING').length})
@@ -235,44 +235,44 @@ export const AlertCenterView: React.FC = () => {
             return (
               <div
                 key={alert.id}
-                className={`bg-slate-900 rounded-2xl border p-5 shadow-lg transition-all ${
+                className={`bg-white rounded-2xl border p-5 shadow-sm transition-all ${
                   isCritical
-                    ? 'border-rose-500/60 bg-gradient-to-r from-rose-950/20 via-slate-900 to-slate-900'
-                    : 'border-slate-800/90'
-                } ${isAck ? 'opacity-70' : ''}`}
+                    ? 'border-rose-300 bg-rose-50/20'
+                    : 'border-slate-200'
+                } ${isAck ? 'opacity-65' : ''}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1.5 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {getTierBadge(alert.tier)}
-                      <span className="font-mono text-xs font-bold text-white">{alert.id}</span>
-                      <span className="text-[11px] text-slate-500">•</span>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-emerald-400" /> {alert.village}
+                      <span className="font-mono text-xs font-bold text-slate-800">{alert.id}</span>
+                      <span className="text-[11px] text-slate-400">•</span>
+                      <span className="text-[11px] text-slate-600 flex items-center gap-1 font-medium">
+                        <MapPin className="w-3 h-3 text-emerald-600" /> {alert.village}
                       </span>
-                      <span className="text-[11px] text-slate-500">•</span>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-slate-500" /> {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <span className="text-[11px] text-slate-400">•</span>
+                      <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" /> {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
-                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                       {alert.title}
                     </h3>
 
-                    <p className="text-xs text-slate-300 leading-relaxed">
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       {alert.message}
                     </p>
 
-                    <div className="pt-2 flex flex-wrap items-center gap-4 text-[11px] text-slate-400">
-                      <span><b>Target:</b> {alert.affectedAnimals}</span>
+                    <div className="pt-2 flex flex-wrap items-center gap-4 text-[11px] text-slate-500">
+                      <span><b className="text-slate-700">Target:</b> {alert.affectedAnimals}</span>
                       <span>•</span>
-                      <span><b>Trigger:</b> {alert.source}</span>
+                      <span><b className="text-slate-700">Trigger:</b> {alert.source}</span>
                     </div>
 
                     {/* Action directive box */}
-                    <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
-                      <b className="text-amber-300">Recommended Action:</b> {alert.recommendedAction}
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                      <b className="text-blue-700">Recommended Action:</b> {alert.recommendedAction}
                     </div>
                   </div>
 

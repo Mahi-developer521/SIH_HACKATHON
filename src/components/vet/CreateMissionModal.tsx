@@ -47,31 +47,31 @@ export const CreateMissionModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden my-6">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-xl overflow-hidden my-6">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
               📋
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Create Response Mission</h3>
-              <p className="text-xs text-slate-400">Dispatch Field Para-Vet for Ground Investigation</p>
+              <h3 className="text-base font-bold text-slate-900">Create Response Mission</h3>
+              <p className="text-xs text-slate-500">Dispatch Field Para-Vet for Ground Investigation</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-xs flex justify-between items-center">
+          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs flex justify-between items-center">
             <div>
-              <span className="text-slate-400 block text-[11px] uppercase font-bold">Target Case & Village:</span>
-              <span className="text-white font-bold">{caseId} • {village}</span>
+              <span className="text-slate-500 block text-[11px] uppercase font-bold">Target Case & Village:</span>
+              <span className="text-slate-900 font-bold">{caseId} • {village}</span>
             </div>
             {clusterId && (
-              <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black px-2 py-0.5 rounded-full">
+              <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
                 Cluster {clusterId}
               </span>
             )}
@@ -102,10 +102,10 @@ export const CreateMissionModal: React.FC<Props> = ({
               {(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'] as const).map((p) => {
                 const isSelected = priority === p;
                 const colors = {
-                  LOW: 'text-emerald-300 border-emerald-500/50 bg-emerald-950/40',
-                  MEDIUM: 'text-amber-300 border-amber-500/50 bg-amber-950/40',
-                  HIGH: 'text-rose-300 border-rose-500/50 bg-rose-950/40',
-                  EMERGENCY: 'text-rose-400 border-rose-600 bg-rose-900/60 font-black animate-pulse'
+                  LOW: 'text-emerald-800 border-emerald-300 bg-emerald-50',
+                  MEDIUM: 'text-amber-800 border-amber-300 bg-amber-50',
+                  HIGH: 'text-rose-700 border-rose-300 bg-rose-50',
+                  EMERGENCY: 'text-rose-800 border-rose-400 bg-rose-100 font-black'
                 };
                 return (
                   <button
@@ -114,8 +114,8 @@ export const CreateMissionModal: React.FC<Props> = ({
                     onClick={() => setPriority(p)}
                     className={`py-2 text-[10px] sm:text-xs rounded-xl border font-bold transition-all ${
                       isSelected 
-                        ? `${colors[p]} ring-1 ring-white/50` 
-                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                        ? `${colors[p]} ring-1 ring-blue-600 shadow-sm` 
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     {p}
@@ -135,7 +135,7 @@ export const CreateMissionModal: React.FC<Props> = ({
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

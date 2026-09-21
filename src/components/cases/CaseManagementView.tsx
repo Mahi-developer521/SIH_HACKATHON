@@ -113,17 +113,17 @@ export const CaseManagementView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               {t('caseManagement') || 'Epidemiological Case Directory'}
             </h1>
-            <span className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-full font-bold">
+            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-full font-bold">
               {state.cases.length} Total Registered
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             District-wide real-time disease case registry, clinical triage, and field response tracking.
           </p>
         </div>
@@ -236,59 +236,59 @@ export const CaseManagementView: React.FC = () => {
               }}
             />
           ) : (
-            <table className="w-full text-left text-xs text-slate-200">
-              <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800 text-[11px]">
+            <table className="w-full text-left text-xs text-slate-800">
+              <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200 text-[11px]">
                 <tr>
                   <th 
-                    className="py-3 px-4 cursor-pointer hover:text-white"
+                    className="py-3 px-4 cursor-pointer hover:text-slate-900"
                     onClick={() => toggleSort('id')}
                   >
                     <div className="flex items-center gap-1">
-                      Case ID <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      Case ID <ArrowUpDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </th>
                   <th className="py-3 px-4">Location / Village</th>
                   <th className="py-3 px-4">Species & Morbidity</th>
                   <th 
-                    className="py-3 px-4 cursor-pointer hover:text-white"
+                    className="py-3 px-4 cursor-pointer hover:text-slate-900"
                     onClick={() => toggleSort('riskScore')}
                   >
                     <div className="flex items-center gap-1">
-                      AI Risk <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      AI Risk <ArrowUpDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </th>
                   <th 
-                    className="py-3 px-4 cursor-pointer hover:text-white"
+                    className="py-3 px-4 cursor-pointer hover:text-slate-900"
                     onClick={() => toggleSort('reportedAt')}
                   >
                     <div className="flex items-center gap-1">
-                      Reported At <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      Reported At <ArrowUpDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {filteredCases.map((c) => {
                   const isHigh = c.riskLevel === 'HIGH';
                   return (
                     <tr 
                       key={c.id}
-                      className={`hover:bg-slate-800/40 transition-colors ${
-                        isHigh ? 'bg-rose-950/10' : ''
+                      className={`hover:bg-slate-50 transition-colors ${
+                        isHigh ? 'bg-rose-50/40' : ''
                       }`}
                     >
                       {/* Case ID */}
-                      <td className="py-3.5 px-4 font-mono font-bold text-white flex items-center gap-2">
-                        {isHigh && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />}
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 flex items-center gap-2">
+                        {isHigh && <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />}
                         <span>{c.id}</span>
                       </td>
 
                       {/* Location */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                          <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-slate-800 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                           <span>{c.village}</span>
                         </div>
                         <span className="text-[10px] text-slate-500 block pl-5 font-mono">
@@ -298,13 +298,13 @@ export const CaseManagementView: React.FC = () => {
 
                       {/* Species & Morbidity */}
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-200 capitalize">
+                        <div className="font-semibold text-slate-800 capitalize">
                           {c.animalType} ({c.totalAnimals} herd)
                         </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
-                          <span className="text-amber-400 font-semibold">{c.sickCount} sick</span>
+                        <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span className="text-amber-700 font-semibold">{c.sickCount} sick</span>
                           <span>•</span>
-                          <span className={c.deadCount > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}>
+                          <span className={c.deadCount > 0 ? 'text-rose-700 font-bold' : 'text-slate-500'}>
                             {c.deadCount} dead
                           </span>
                         </div>
@@ -314,16 +314,16 @@ export const CaseManagementView: React.FC = () => {
                       <td className="py-3.5 px-4">
                         <div className="space-y-1">
                           <RiskBadge risk={c.riskLevel} size="sm" />
-                          <div className="text-[10px] font-mono text-slate-400">
-                            Score: <b className="text-white">{c.riskScore}</b>/100
+                          <div className="text-[10px] font-mono text-slate-500">
+                            Score: <b className="text-slate-900">{c.riskScore}</b>/100
                           </div>
                         </div>
                       </td>
 
                       {/* Reported At */}
-                      <td className="py-3.5 px-4 text-slate-400 text-[11px]">
+                      <td className="py-3.5 px-4 text-slate-600 text-[11px]">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
+                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>{new Date(c.submittedAt).toLocaleDateString()}</span>
                         </div>
                         <span className="text-[10px] text-slate-500 block">
@@ -352,7 +352,7 @@ export const CaseManagementView: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              leftIcon={<Send className="w-3.5 h-3.5 text-blue-400" />}
+                              leftIcon={<Send className="w-3.5 h-3.5" />}
                               onClick={() => setMissionModalCase({
                                 id: c.id,
                                 village: c.village,

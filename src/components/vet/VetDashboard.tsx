@@ -47,20 +47,20 @@ export const VetDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Vet Header & Command Stats (Section 15) */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-slate-900 border border-blue-800/40 rounded-2xl p-6 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
               <Stethoscope className="w-8 h-8" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white">{t('commandCenter')}</h2>
-                <span className="bg-blue-500/20 text-blue-300 text-xs px-2 py-0.5 rounded font-semibold border border-blue-500/40">
+                <h2 className="text-xl font-bold text-slate-900">{t('commandCenter')}</h2>
+                <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded font-semibold border border-blue-200">
                   Officer: Dr. A. Sharma
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Surveillance Jurisdiction: District Animal Disease Surveillance & Rapid Response Division
               </p>
             </div>
@@ -69,7 +69,7 @@ export const VetDashboard: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsInterventionModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-sm flex items-center gap-1.5"
             >
               <Syringe className="w-4 h-4" /> {t('authorizeIntervention')} (Step 25)
             </button>
@@ -77,32 +77,32 @@ export const VetDashboard: React.FC = () => {
         </div>
 
         {/* Command KPI Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
-          <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Active AI Alerts</span>
-            <span className="text-2xl font-black text-rose-400 mt-0.5 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-200">
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <span className="text-[11px] text-slate-500 uppercase font-semibold block">Active AI Alerts</span>
+            <span className="text-2xl font-black text-rose-600 mt-0.5 flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
               {highRiskCases.length} Cases
             </span>
           </div>
 
-          <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Spatio-Temporal Clusters</span>
-            <span className="text-2xl font-black text-amber-400 mt-0.5">
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <span className="text-[11px] text-slate-500 uppercase font-semibold block">Spatio-Temporal Clusters</span>
+            <span className="text-2xl font-black text-amber-700 mt-0.5">
               {state.clusters.filter(c => c.status !== 'CONTAINED').length} Active (CL-001)
             </span>
           </div>
 
-          <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Dispatched Missions</span>
-            <span className="text-2xl font-black text-blue-400 mt-0.5">
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <span className="text-[11px] text-slate-500 uppercase font-semibold block">Dispatched Missions</span>
+            <span className="text-2xl font-black text-blue-600 mt-0.5">
               {state.missions.length} Missions
             </span>
           </div>
 
-          <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Lab Result Intake</span>
-            <span className="text-2xl font-black text-purple-400 mt-0.5">
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <span className="text-[11px] text-slate-500 uppercase font-semibold block">Lab Result Intake</span>
+            <span className="text-2xl font-black text-purple-700 mt-0.5">
               {state.cases.filter(c => c.labResult).length} Certified
             </span>
           </div>
@@ -110,18 +110,18 @@ export const VetDashboard: React.FC = () => {
       </div>
 
       {/* Vet Navigation Tabs */}
-      <div className="flex border-b border-slate-800 space-x-4 text-xs font-semibold">
+      <div className="flex border-b border-slate-200 space-x-4 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('alerts')}
           className={`pb-3 px-1 transition-all flex items-center gap-1.5 ${
             activeTab === 'alerts'
-              ? 'border-b-2 border-blue-400 text-blue-400'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <span>{t('aiAlerts')} ({state.clusters.length})</span>
           {activeCluster && activeCluster.status === 'ACTIVE_OUTBREAK' && (
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
           )}
         </button>
 
@@ -129,8 +129,8 @@ export const VetDashboard: React.FC = () => {
           onClick={() => setActiveTab('gis')}
           className={`pb-3 px-1 transition-all flex items-center gap-1.5 ${
             activeTab === 'gis'
-              ? 'border-b-2 border-blue-400 text-blue-400'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Layers className="w-3.5 h-3.5" /> GIS Geospatial Intelligence
@@ -140,8 +140,8 @@ export const VetDashboard: React.FC = () => {
           onClick={() => setActiveTab('missions')}
           className={`pb-3 px-1 transition-all flex items-center gap-1.5 ${
             activeTab === 'missions'
-              ? 'border-b-2 border-blue-400 text-blue-400'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <MapPin className="w-3.5 h-3.5" /> Field Investigations ({state.missions.length})
@@ -151,8 +151,8 @@ export const VetDashboard: React.FC = () => {
           onClick={() => setActiveTab('vaccination')}
           className={`pb-3 px-1 transition-all flex items-center gap-1.5 ${
             activeTab === 'vaccination'
-              ? 'border-b-2 border-blue-400 text-blue-400'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Syringe className="w-3.5 h-3.5" /> {t('vaccinationGaps')}
@@ -162,8 +162,8 @@ export const VetDashboard: React.FC = () => {
           onClick={() => setActiveTab('interventions')}
           className={`pb-3 px-1 transition-all flex items-center gap-1.5 ${
             activeTab === 'interventions'
-              ? 'border-b-2 border-blue-400 text-blue-400'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <CheckCircle2 className="w-3.5 h-3.5" /> Interventions ({state.interventions.length})
@@ -175,62 +175,62 @@ export const VetDashboard: React.FC = () => {
         <div className="space-y-5">
           {/* Active High-Risk Cluster Review Card (CL-001) */}
           {activeCluster && (
-            <div className="bg-slate-900 border-2 border-rose-600/60 rounded-2xl p-6 shadow-2xl space-y-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl flex items-center gap-1">
+            <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Step 16: Urgent AI Evidence Dossier
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-black text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800">
+                    <span className="font-mono text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                       {activeCluster.id}
                     </span>
-                    <h3 className="text-lg font-bold text-white">{activeCluster.name}</h3>
+                    <h3 className="text-lg font-bold text-slate-900">{activeCluster.name}</h3>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Affecting Villages: <b className="text-slate-200">{activeCluster.villages.join(', ')}</b> • Total Cases: <b className="text-rose-400">{activeCluster.totalCases}</b> • Total Deaths: <b className="text-rose-400">{activeCluster.totalDeaths}</b>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Affecting Villages: <b className="text-slate-800">{activeCluster.villages.join(', ')}</b> • Total Cases: <b className="text-rose-600">{activeCluster.totalCases}</b> • Total Deaths: <b className="text-rose-600">{activeCluster.totalDeaths}</b>
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <div className="text-3xl font-black text-rose-500 tracking-tight">
+                  <div className="text-3xl font-black text-rose-600 tracking-tight">
                     {activeCluster.riskScore}<span className="text-sm font-semibold text-slate-400">/100</span>
                   </div>
-                  <span className="text-[11px] font-extrabold uppercase text-rose-400 tracking-wider">
+                  <span className="text-[11px] font-bold uppercase text-rose-700 tracking-wider">
                     Risk Level: {activeCluster.riskLevel}
                   </span>
                 </div>
               </div>
 
               {/* AI Evidence Factors Grid (Section 16) */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
-                <span className="font-semibold text-slate-300 block text-[11px] uppercase tracking-wider">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
+                <span className="font-semibold text-slate-700 block text-[11px] uppercase tracking-wider">
                   🤖 Automated AI Intelligence Signals & Epidemiological Evidence:
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-200">
-                  <div className="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800">
-                    <span className="text-emerald-400 font-bold">✓</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-800">
+                  <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="text-emerald-600 font-bold">✓</span>
                     <span><b>Rapid increase:</b> 21 cumulative cases reported across 3 days</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800">
-                    <span className="text-emerald-400 font-bold">✓</span>
+                  <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="text-emerald-600 font-bold">✓</span>
                     <span><b>Symptom concordance:</b> Blisters, acute drooling, high fever</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800">
-                    <span className="text-emerald-400 font-bold">✓</span>
+                  <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="text-emerald-600 font-bold">✓</span>
                     <span><b>Geographic cluster:</b> Multi-village epicenter within 6.5 km</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800">
-                    <span className="text-emerald-400 font-bold">✓</span>
+                  <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="text-emerald-600 font-bold">✓</span>
                     <span><b>Historical deviation:</b> 3.8x above 5-year seasonal normal</span>
                   </div>
                 </div>
               </div>
 
               {/* Triage Action Buttons (Section 16: Investigate / Monitor / Escalate) */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
-                <div className="text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+                <div className="text-xs text-slate-600 font-medium">
                   Veterinary Triage Decision Protocol:
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -245,7 +245,7 @@ export const VetDashboard: React.FC = () => {
                         coords: firstCase.coordinates
                       });
                     }}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-md shadow-blue-600/30"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
                   >
                     <Send className="w-3.5 h-3.5" /> {t('createMission')} (Step 17)
                   </button>
@@ -257,7 +257,7 @@ export const VetDashboard: React.FC = () => {
                       triageCase(firstCase.id, 'MONITOR', 'Instructed local dispensary to monitor daily rectal temperature and hydration.');
                       alert(`Case ${firstCase.id} triaged as MONITORING. Advisory sent to local staff.`);
                     }}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 border border-slate-700"
+                    className="bg-white hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 border border-slate-300"
                   >
                     <Eye className="w-3.5 h-3.5" /> Monitor Closely
                   </button>
@@ -269,7 +269,7 @@ export const VetDashboard: React.FC = () => {
                       triageCase(firstCase.id, 'ESCALATE', 'Escalated to State Directorate of Animal Husbandry for emergency quarantine cordon.');
                       alert(`Emergency escalation notification transmitted to State Directorate!`);
                     }}
-                    className="bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/50 font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1"
+                    className="bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1"
                   >
                     <AlertTriangle className="w-3.5 h-3.5" /> Escalate Alert
                   </button>
@@ -277,7 +277,7 @@ export const VetDashboard: React.FC = () => {
                   {/* Authorize Ring Vaccination */}
                   <button
                     onClick={() => setIsInterventionModalOpen(true)}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
                   >
                     <Syringe className="w-3.5 h-3.5" /> {t('authorizeIntervention')} (Step 25)
                   </button>
@@ -287,10 +287,10 @@ export const VetDashboard: React.FC = () => {
           )}
 
           {/* List of Individual Cases Awaiting Verification (Clickable Dossiers) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-            <h4 className="font-bold text-sm text-white flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <h4 className="font-bold text-sm text-slate-900 flex items-center justify-between">
               <span>Reported Surveillance Cases Feed (Click any card to inspect full dossier)</span>
-              <span className="text-xs text-slate-400 font-normal">{state.cases.length} Total Records</span>
+              <span className="text-xs text-slate-500 font-normal">{state.cases.length} Total Records</span>
             </h4>
 
             <div className="space-y-2">
@@ -298,33 +298,35 @@ export const VetDashboard: React.FC = () => {
                 <div 
                   key={c.id} 
                   onClick={() => setViewingCase(c)}
-                  className="bg-slate-950 hover:bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 hover:border-blue-500/60 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  className="bg-white hover:bg-slate-50 p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white flex items-center gap-1">
-                        {c.id} <ExternalLink className="w-3 h-3 text-slate-500" />
+                      <span className="font-bold text-slate-900 flex items-center gap-1">
+                        {c.id} <ExternalLink className="w-3 h-3 text-slate-400" />
                       </span>
-                      <span className={`px-2 py-0.2 rounded text-[10px] font-bold ${
-                        c.riskLevel === 'HIGH' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                        c.riskLevel === 'HIGH' 
+                          ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                          : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       }`}>
                         Score {c.riskScore} • {c.riskLevel}
                       </span>
-                      <span className="text-slate-400 text-[11px]">• {c.village} ({c.animalType})</span>
+                      <span className="text-slate-500 text-[11px]">• {c.village} ({c.animalType})</span>
                     </div>
-                    <p className="text-slate-300">
+                    <p className="text-slate-600">
                       Symptoms: {c.symptoms.slice(0, 3).join(', ')} | Sick: {c.sickCount}, Dead: {c.deadCount}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     {c.labResult ? (
-                      <span className="bg-purple-950/60 text-purple-300 border border-purple-800 px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1">
-                        <FlaskConical className="w-3 h-3 text-purple-400" />
+                      <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1">
+                        <FlaskConical className="w-3 h-3 text-purple-600" />
                         Lab {c.labResult.result}: {c.labResult.pathogenIdentified}
                       </span>
                     ) : c.missionId ? (
-                      <span className="bg-blue-950/60 text-blue-300 border border-blue-800 px-2.5 py-1 rounded text-xs font-medium">
+                      <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded text-xs font-medium">
                         Field Mission: {c.missionId} Active
                       </span>
                     ) : (
@@ -335,7 +337,7 @@ export const VetDashboard: React.FC = () => {
                           clusterId: c.clusterId,
                           coords: c.coordinates
                         })}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg transition-colors text-xs flex items-center gap-1 shadow-sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded-lg transition-colors text-xs flex items-center gap-1 shadow-sm"
                       >
                         <Send className="w-3 h-3" /> Assign Field Worker
                       </button>
@@ -358,37 +360,37 @@ export const VetDashboard: React.FC = () => {
       {/* Tab 3: Field Investigations & Missions */}
       {activeTab === 'missions' && (
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-            <h4 className="font-bold text-sm text-white">Active Field Worker Missions</h4>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <h4 className="font-bold text-sm text-slate-900">Active Field Worker Missions</h4>
             <div className="space-y-3">
               {state.missions.map(m => (
-                <div key={m.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div key={m.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">{m.id}</span>
-                      <span className="bg-blue-500/20 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/40">
+                      <span className="font-bold text-slate-900 text-sm">{m.id}</span>
+                      <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
                         {m.priority} PRIORITY
                       </span>
-                      <span className="text-slate-400">Target: {m.targetVillage}</span>
+                      <span className="text-slate-500">Target: {m.targetVillage}</span>
                     </div>
-                    <span className="bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-bold">
+                    <span className="bg-white text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-bold">
                       {m.status}
                     </span>
                   </div>
 
-                  <p className="text-slate-300"><b>Assigned Inspector:</b> {m.workerName} ({m.assignedToWorkerId})</p>
-                  <p className="text-slate-400"><b>Instructions:</b> {m.instructions}</p>
+                  <p className="text-slate-700"><b>Assigned Inspector:</b> {m.workerName} ({m.assignedToWorkerId})</p>
+                  <p className="text-slate-500"><b>Instructions:</b> {m.instructions}</p>
 
                   {m.investigationDetails && (
-                    <div className="bg-slate-900 p-3 rounded-lg border border-slate-800 mt-2 space-y-1">
-                      <span className="text-emerald-400 font-bold block text-[11px]">✓ On-Site Ground Findings Verified:</span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-200">
+                    <div className="bg-white p-3 rounded-lg border border-slate-200 mt-2 space-y-1">
+                      <span className="text-emerald-700 font-bold block text-[11px]">✓ On-Site Ground Findings Verified:</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-800">
                         <div>Examined: <b>{m.investigationDetails.examinedCount}</b></div>
                         <div>Sick: <b>{m.investigationDetails.sickCount}</b></div>
                         <div>Dead: <b>{m.investigationDetails.deadCount}</b></div>
                         <div>Sample Taken: <b>{m.investigationDetails.sampleTaken ? `Yes (${m.investigationDetails.sampleId})` : 'No'}</b></div>
                       </div>
-                      <p className="text-slate-400 text-[11px] pt-1">Notes: {m.investigationDetails.fieldNotes}</p>
+                      <p className="text-slate-500 text-[11px] pt-1">Notes: {m.investigationDetails.fieldNotes}</p>
                     </div>
                   )}
                 </div>
@@ -401,10 +403,10 @@ export const VetDashboard: React.FC = () => {
       {/* Tab 4: Vaccination Coverage Tracking & Gaps */}
       {activeTab === 'vaccination' && (
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <div>
-              <h4 className="font-bold text-sm text-white">Village-Level Herd Immunity & Vaccination Deficit Audit</h4>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <h4 className="font-bold text-sm text-slate-900">Village-Level Herd Immunity & Vaccination Deficit Audit</h4>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Surveillance rule: Any village under 70% coverage represents an acute vulnerability during transboundary outbreaks.
               </p>
             </div>
@@ -415,12 +417,12 @@ export const VetDashboard: React.FC = () => {
                 return (
                   <div 
                     key={v.name}
-                    className={`bg-slate-950 p-4 rounded-xl border space-y-3 ${
-                      isDeficit ? 'border-rose-500/70 shadow-lg shadow-rose-950/40' : 'border-slate-800'
+                    className={`p-4 rounded-xl border space-y-3 ${
+                      isDeficit ? 'bg-rose-50/40 border-rose-200 shadow-sm' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <h5 className="font-bold text-xs text-white">{v.name}</h5>
+                      <h5 className="font-bold text-xs text-slate-900">{v.name}</h5>
                       {isDeficit && (
                         <span className="bg-rose-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
                           DEFICIT GAP
@@ -430,21 +432,21 @@ export const VetDashboard: React.FC = () => {
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Vaccine Coverage</span>
-                        <span className={`font-bold ${isDeficit ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        <span className="text-slate-500">Vaccine Coverage</span>
+                        <span className={`font-bold ${isDeficit ? 'text-rose-600' : 'text-emerald-700'}`}>
                           {v.coveragePercent}%
                         </span>
                       </div>
                       {/* Progress Bar */}
-                      <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full ${isDeficit ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                          className={`h-full ${isDeficit ? 'bg-rose-500' : 'bg-emerald-600'}`}
                           style={{ width: `${v.coveragePercent}%` }}
                         />
                       </div>
                     </div>
 
-                    <div className="text-[11px] text-slate-400 flex justify-between pt-1 border-t border-slate-900">
+                    <div className="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-200">
                       <span>Total: {v.totalLivestock}</span>
                       <span>Vaccinated: {v.vaccinatedLivestock}</span>
                     </div>
@@ -454,7 +456,7 @@ export const VetDashboard: React.FC = () => {
                         onClick={() => {
                           setIsInterventionModalOpen(true);
                         }}
-                        className="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/50 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5"
                       >
                         <Syringe className="w-3.5 h-3.5" /> Deploy Emergency Ring Vaccines
                       </button>
@@ -470,48 +472,48 @@ export const VetDashboard: React.FC = () => {
       {/* Tab 5: Interventions Log */}
       {activeTab === 'interventions' && (
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-sm text-white">Authorized Containment Interventions</h4>
+              <h4 className="font-bold text-sm text-slate-900">Authorized Containment Interventions</h4>
               <button
                 onClick={() => setIsInterventionModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1"
               >
                 + New Intervention Order
               </button>
             </div>
 
             {state.interventions.length === 0 ? (
-              <p className="text-xs text-slate-400 py-4 text-center">
+              <p className="text-xs text-slate-500 py-4 text-center">
                 No active intervention orders yet. Click "+ New Intervention Order" to deploy ring vaccination or quarantine.
               </p>
             ) : (
               <div className="space-y-2">
                 {state.interventions.map(i => (
-                  <div key={i.id} className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs space-y-2">
+                  <div key={i.id} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white text-sm">{i.type.replace('_', ' ')}</span>
+                      <span className="font-bold text-slate-900 text-sm">{i.type.replace('_', ' ')}</span>
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                           i.status === 'COMPLETED'
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border-amber-200'
                         }`}>
                           {i.status}
                         </span>
                         {i.status !== 'COMPLETED' && (
                           <button
                             onClick={() => completeIntervention(i.id)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-0.5 rounded text-[10px] font-bold transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold shadow-sm transition-colors"
                           >
                             Mark Completed
                           </button>
                         )}
                       </div>
                     </div>
-                    <p className="text-slate-300"><b>Target:</b> {i.targetVillage} | <b>Doses/Coverage:</b> {i.dosesAdministered || i.animalsQuarantined}</p>
-                    <p className="text-slate-400"><b>Directives:</b> {i.notes}</p>
-                    <div className="text-[10px] text-slate-500 pt-1">
+                    <p className="text-slate-700"><b>Target:</b> {i.targetVillage} | <b>Doses/Coverage:</b> {i.dosesAdministered || i.animalsQuarantined}</p>
+                    <p className="text-slate-500"><b>Directives:</b> {i.notes}</p>
+                    <div className="text-[10px] text-slate-400 pt-1">
                       Authorized by: {i.authorizedByVet} on {i.initiatedAt}
                     </div>
                   </div>
