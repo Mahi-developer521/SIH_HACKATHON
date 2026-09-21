@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSurveillanceStore } from '../../store/surveillanceStore';
 import { I18nService } from '../../services/i18nService';
 import { 
@@ -110,8 +110,42 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
     }
   }, [isCameraActive]);
 
+  // Stop Camera Stream safely and release hardware tracks
+  const stopCamera = useCallback(() => {
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          try {
+            track.stop();
+          } catch (e) {
+            console.warn('[CameraScanner] Error stopping track on streamRef:', e);
+          }
+        });
+        streamRef.current = null;
+      }
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream && stream.getTracks) {
+          stream.getTracks().forEach((track) => {
+            try {
+              track.stop();
+            } catch (e) {
+              console.warn('[CameraScanner] Error stopping track on videoRef:', e);
+            }
+          });
+        }
+        videoRef.current.srcObject = null;
+      }
+    } catch (err) {
+      console.warn('[CameraScanner] stopCamera warning:', err);
+    } finally {
+      setIsCameraActive(false);
+      setIsCameraLoading(false);
+    }
+  }, []);
+
   // Start Camera Stream with multi-tier fallback
-  const startCamera = async (faceMode: 'environment' | 'user' = facingMode) => {
+  const startCamera = useCallback(async (faceMode: 'environment' | 'user' = facingMode) => {
     setCameraError(null);
     setIsCameraLoading(true);
     stopCamera();
@@ -134,27 +168,15 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
         err.message || 'Camera permission denied or camera device unavailable. You can upload an image or select a clinical preset below.'
       );
     }
-  };
+  }, [facingMode, stopCamera]);
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraActive(false);
-    setIsCameraLoading(false);
-  };
-
-  const toggleFacingMode = () => {
+  const toggleFacingMode = useCallback(() => {
     const nextMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(nextMode);
     if (isCameraActive || activeMode === 'camera') {
       startCamera(nextMode);
     }
-  };
+  }, [facingMode, isCameraActive, activeMode, startCamera]);
 
   useEffect(() => {
     // Auto-attempt camera start when in camera tab
@@ -227,7 +249,13 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
   };
 
   const handleProceedToReport = () => {
+    stopCamera();
     onSelectPhotoForReport(currentPhotoUrl, currentFileName, analysis.symptoms);
+  };
+
+  const handleClose = () => {
+    stopCamera();
+    onClose?.();
   };
 
   return (
@@ -253,7 +281,7 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
 
         {onClose && (
           <button 
-            onClick={onClose}
+            onClick={handleClose}
             className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />

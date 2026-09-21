@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSurveillanceStore } from '../../store/surveillanceStore';
 import { AnimalType, CaseReport } from '../../types/surveillance';
 import { CANONICAL_SYMPTOMS } from '../../data/mockData';
@@ -131,20 +131,145 @@ export const ReportCaseModal: React.FC<Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedCase, setSubmittedCase] = useState<CaseReport | null>(null);
 
+  // Stop Camera stream and release hardware tracks safely
+  const stopCamera = useCallback(() => {
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          try {
+            track.stop();
+          } catch (e) {
+            console.warn('[ReportCaseModal] Error stopping track on streamRef:', e);
+          }
+        });
+        streamRef.current = null;
+      }
+
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream && stream.getTracks) {
+          stream.getTracks().forEach((track) => {
+            try {
+              track.stop();
+            } catch (e) {
+              console.warn('[ReportCaseModal] Error stopping track on videoRef:', e);
+            }
+          });
+        }
+        videoRef.current.srcObject = null;
+      }
+    } catch (err) {
+      console.warn('[ReportCaseModal] Error in stopCamera:', err);
+    } finally {
+      setIsCameraActive(false);
+      setIsCameraLoading(false);
+    }
+  }, []);
+
+  // Stop Voice Recording safely
+  const stopVoiceRecording = useCallback(() => {
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+    } catch (e) {
+      console.warn('[ReportCaseModal] Error stopping voice recognition:', e);
+    } finally {
+      setIsRecording(false);
+      setRecordingStatus('');
+    }
+  }, []);
+
+  // Start Camera Stream with multi-tier fallback
+  const startCamera = useCallback(async (facing: 'environment' | 'user' = cameraFacingMode) => {
+    setCameraError(null);
+    setIsCameraLoading(true);
+    stopCamera();
+
+    try {
+      const stream = await getCameraStream(facing);
+      streamRef.current = stream;
+      setCameraFacingMode(facing);
+      setIsCameraActive(true);
+      setIsCameraLoading(false);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch((e) => {
+          console.warn('[ReportCaseModal] Video play error:', e);
+        });
+      }
+    } catch (err: any) {
+      console.warn('[ReportCaseModal] Camera start error:', err);
+      setIsCameraLoading(false);
+      setIsCameraActive(false);
+      setCameraError(
+        err?.message || 'Camera permission denied or camera device unavailable. You can upload an image file instead.'
+      );
+    }
+  }, [cameraFacingMode, stopCamera]);
+
+  const switchCamera = useCallback(() => {
+    const nextFacing = cameraFacingMode === 'environment' ? 'user' : 'environment';
+    setCameraFacingMode(nextFacing);
+    startCamera(nextFacing);
+  }, [cameraFacingMode, startCamera]);
+
+  const captureSnapshot = useCallback(() => {
+    if (videoRef.current) {
+      const dataUrl = captureVideoFrame(videoRef.current, 0.92);
+      if (dataUrl) {
+        setCapturedSnapshot(dataUrl);
+        stopCamera();
+      }
+    }
+  }, [stopCamera]);
+
+  const confirmCapturedSnapshot = useCallback(() => {
+    if (capturedSnapshot) {
+      setPhotoUrl(capturedSnapshot);
+      setPhotoFileName(`captured_lesion_${Date.now()}.jpg`);
+      setCapturedSnapshot(null);
+      stopCamera();
+      showToast('success', 'Camera snapshot attached to clinical report.');
+    }
+  }, [capturedSnapshot, stopCamera, showToast]);
+
+  const handleCloseModal = useCallback(() => {
+    stopCamera();
+    stopVoiceRecording();
+    onClose();
+  }, [stopCamera, stopVoiceRecording, onClose]);
+
   useEffect(() => {
     if (initialPhotoUrl) setPhotoUrl(initialPhotoUrl);
     if (initialPhotoFileName) setPhotoFileName(initialPhotoFileName);
     if (initialSymptoms && initialSymptoms.length > 0) setSelectedSymptoms(initialSymptoms);
   }, [initialPhotoUrl, initialPhotoFileName, initialSymptoms]);
 
+  // Clean up camera & voice on component unmount
   useEffect(() => {
     return () => {
       stopCamera();
       stopVoiceRecording();
     };
-  }, []);
+  }, [stopCamera, stopVoiceRecording]);
 
-  if (!isOpen) return null;
+  // Clean up camera & voice whenever modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      stopCamera();
+      stopVoiceRecording();
+    }
+  }, [isOpen, stopCamera, stopVoiceRecording]);
+
+  // Turn off camera if navigating away from Step 4 (Evidence Step)
+  useEffect(() => {
+    if (currentStep !== 4) {
+      stopCamera();
+    }
+  }, [currentStep, stopCamera]);
 
   // --- Step Validation ---
   const validateAndProceed = () => {
@@ -265,79 +390,9 @@ export const ReportCaseModal: React.FC<Props> = ({
     }
   };
 
-  const stopVoiceRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-    setIsRecording(false);
-    setRecordingStatus('');
-  };
-
-  // --- Camera Controls ---
-  const startCamera = async (faceMode: 'environment' | 'user' = cameraFacingMode) => {
-    setCameraError(null);
-    setIsCameraLoading(true);
-    stopCamera();
-
-    try {
-      const stream = await getCameraStream(faceMode);
-      streamRef.current = stream;
-      setIsCameraActive(true);
-      setIsCameraLoading(false);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch((e) => console.warn('[ReportCaseModal] Play warning:', e));
-      }
-    } catch (err: any) {
-      console.warn('[ReportCaseModal] Camera access issue:', err);
-      setIsCameraLoading(false);
-      setIsCameraActive(false);
-      setCameraError('Camera access not granted or unavailable on this device. You can upload an image file instead.');
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraActive(false);
-    setIsCameraLoading(false);
-  };
-
-  const switchCamera = () => {
-    const nextMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
-    setCameraFacingMode(nextMode);
-    startCamera(nextMode);
-  };
-
-  const captureSnapshot = () => {
-    if (!videoRef.current) return;
-    const dataUrl = captureVideoFrame(videoRef.current, 0.9);
-    if (dataUrl) {
-      setCapturedSnapshot(dataUrl);
-      stopCamera();
-    } else {
-      setCameraError('Failed to capture frame from camera stream. Please try again.');
-    }
-  };
-
-  const confirmCapturedSnapshot = () => {
-    if (capturedSnapshot) {
-      setPhotoUrl(capturedSnapshot);
-      setPhotoFileName(`camera_snapshot_${Date.now()}.jpg`);
-      setCapturedSnapshot(null);
-      showToast('success', 'Camera snapshot confirmed and attached to report.');
-    }
-  };
-
   // --- File Upload ---
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    stopCamera();
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -429,6 +484,8 @@ export const ReportCaseModal: React.FC<Props> = ({
     }
   };
 
+  if (!isOpen) return null;
+
   const stepTitles = [
     t('step1') || 'Animal & Herd',
     t('step2') || 'Clinical Symptoms',
@@ -464,7 +521,7 @@ export const ReportCaseModal: React.FC<Props> = ({
           </div>
 
           <button 
-            onClick={onClose} 
+            onClick={handleCloseModal} 
             className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -1145,7 +1202,7 @@ export const ReportCaseModal: React.FC<Props> = ({
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCloseModal}
                 className="gov-btn-primary text-xs"
               >
                 Done
