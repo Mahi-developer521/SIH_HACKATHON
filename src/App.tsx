@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sidebar, ActiveNavSection } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { NotificationDrawer } from './components/layout/NotificationDrawer';
-import { AuthGateway } from './components/auth/AuthGateway';
+import { HomePortal } from './components/home/HomePortal';
 import { FarmerDashboard } from './components/farmer/FarmerDashboard';
 import { VetDashboard } from './components/vet/VetDashboard';
 import { FieldWorkerDashboard } from './components/field/FieldWorkerDashboard';
@@ -35,9 +35,13 @@ export function App() {
   const lang = state.language;
   const t = (k: any) => I18nService.get(lang, k);
 
-  // If user is not authenticated, display the dedicated Role-Based Login Gateway
-  if (!state.isAuthenticated) {
-    return <AuthGateway />;
+  // If user is not authenticated or navigates to home, display the dedicated Home Dashboard of Role Selection
+  if (!state.isAuthenticated || currentSection === 'home') {
+    return (
+      <HomePortal 
+        onLoginSuccess={() => setCurrentSection('dashboard')} 
+      />
+    );
   }
 
   return (
@@ -134,7 +138,7 @@ export function App() {
               <span>{t('brandTitle')} • Department of Animal Husbandry & Dairying</span>
             </div>
             <span className="text-[11px] text-slate-500">
-              Smart India Hackathon • National Biosecurity Command System
+              Government of India • National Integrated Animal Health Intelligence System
             </span>
           </div>
         </footer>

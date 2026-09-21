@@ -136,7 +136,7 @@ const getInitialState = (): SurveillanceState => {
         offlineOutbox: parsed.offlineOutbox || [],
         language: parsed.language || 'en',
         isOffline: parsed.isOffline || false,
-        isAuthenticated: !!ApiService.getAuthToken() && !!parsed.currentUser
+        isAuthenticated: false // Default to Home Page of Role Selection on fresh load
       };
     } catch {
       // Fallback

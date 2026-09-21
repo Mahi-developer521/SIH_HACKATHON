@@ -98,18 +98,18 @@ export const FarmerDashboard: React.FC = () => {
 
       {/* Emergency Proximity Alert Banner with Real Telugu Voice Broadcast */}
       {myAlerts.length > 0 && (
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 shadow-xs space-y-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-rose-100 text-rose-600 shrink-0 mt-0.5">
+              <div className="p-2.5 rounded-xl bg-blue-100 text-blue-700 shrink-0 mt-0.5">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="bg-rose-600 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                    🔴 HIGH RISK ALERT
+                  <span className="bg-blue-600 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    PRIORITY BIOSECURITY ALERT
                   </span>
-                  <span className="text-xs text-rose-800 font-bold">
+                  <span className="text-xs text-blue-900 font-bold">
                     Active Disease Cluster {myAlerts[0].distanceKm} km from your herd
                   </span>
                 </div>
@@ -125,7 +125,7 @@ export const FarmerDashboard: React.FC = () => {
                 textTe={`హెచ్చరిక. మీ ప్రాంతంలో పశువులకు సంబంధించిన వ్యాధి కేసులు పెరుగుతున్నాయి. మీ గ్రామానికి ${myAlerts[0].distanceKm} కిలోమీటర్ల దూరంలో చురుకైన వ్యాప్తి గుర్తించబడింది. దయచేసి మీ పశువులను ఇతర మందలతో కలవకుండా ఉంచండి. నోటిలో బొబ్బలు లేదా అధిక లాలాజలం గమనిస్తే వెంటనే అత్యవసర హెల్ప్‌లైన్ 1962 కు కాల్ చేయండి.`}
                 textEn={`High Risk Alert. Active disease outbreak confirmed within ${myAlerts[0].distanceKm} kilometers of your village. Please isolate milking cattle and notify local veterinary clinic if any oral blisters or drooling are observed.`}
                 size="md"
-                variant="danger"
+                variant="primary"
                 label="వినండి / Listen (Telugu Voice)"
               />
             </div>

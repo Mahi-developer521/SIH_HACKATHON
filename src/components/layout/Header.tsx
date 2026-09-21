@@ -44,6 +44,10 @@ export const Header: React.FC<HeaderProps> = ({
   const t = (k: any) => I18nService.get(lang, k);
 
   const sectionTitles: Record<ActiveNavSection, { title: string; subtitle: string }> = {
+    home: {
+      title: 'National Surveillance Home Portal',
+      subtitle: 'Operational role selection and biosecurity command gateway'
+    },
     dashboard: {
       title: t('commandCenter') || 'Livestock Health Command Center',
       subtitle: 'Real-time epidemiological dashboard and triage'
@@ -115,8 +119,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Outbreak Status Badge */}
           <div className="hidden md:flex items-center">
             {state.containmentStatus === 'ACTIVE_OUTBREAK' && (
-              <span className="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 text-[11px]">
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
                 <span>Outbreak Active (CL-001)</span>
               </span>
             )}
@@ -205,7 +209,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Bell className="w-4 h-4" />
             {highRiskAlerts > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
                 {highRiskAlerts}
               </span>
             )}
@@ -256,7 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logout Button */}
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="text-slate-400 hover:text-rose-600 p-1.5 rounded-xl border border-slate-200 hover:border-rose-300 transition-colors"
+            className="text-slate-400 hover:text-blue-600 p-1.5 rounded-xl border border-slate-200 hover:border-blue-300 transition-colors"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
@@ -269,7 +273,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">
                 <LogOut className="w-5 h-5" />
               </div>
               <div>
@@ -290,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowLogoutConfirm(false);
                   logout();
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
               >
                 Sign Out
               </button>

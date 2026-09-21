@@ -188,19 +188,19 @@ export const AlertCenterView: React.FC = () => {
           onClick={() => setActiveTier('CRITICAL')}
           className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             activeTier === 'CRITICAL'
-              ? 'bg-rose-600 text-white font-bold shadow-sm'
-              : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200'
           }`}
         >
-          <span className="w-2 h-2 rounded-full bg-rose-500" />
+          <span className="w-2 h-2 rounded-full bg-blue-600" />
           Critical ({allAlerts.filter(a => a.tier === 'CRITICAL').length})
         </button>
         <button
           onClick={() => setActiveTier('HIGH')}
           className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             activeTier === 'HIGH'
-              ? 'bg-rose-600 text-white font-bold shadow-sm'
-              : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200'
           }`}
         >
           High ({allAlerts.filter(a => a.tier === 'HIGH').length})

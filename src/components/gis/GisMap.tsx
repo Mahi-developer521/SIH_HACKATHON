@@ -102,7 +102,7 @@ export const GisMap: React.FC = () => {
           className: 'cluster-marker-div',
           html: `
             <div class="relative flex items-center justify-center cursor-pointer group">
-              <div class="relative w-8 h-8 rounded-full ${isContained ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-extrabold text-[10px] flex flex-col items-center justify-center shadow-lg border-2 border-white transition-transform group-hover:scale-110">
+              <div class="relative w-8 h-8 rounded-full ${isContained ? 'bg-emerald-600' : 'bg-blue-600'} text-white font-extrabold text-[10px] flex flex-col items-center justify-center shadow-lg border-2 border-white transition-transform group-hover:scale-110">
                 <span class="leading-none text-[8px]">${cl.id}</span>
                 <span class="leading-none text-[9px] font-mono">${cl.totalCases}</span>
               </div>
@@ -189,11 +189,11 @@ export const GisMap: React.FC = () => {
             onClick={() => setFilter(f => ({ ...f, highRisk: !f.highRisk }))}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
               filter.highRisk 
-                ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
             <span>HIGH RISK</span>
           </button>
 
@@ -244,22 +244,22 @@ export const GisMap: React.FC = () => {
           Surveillance Legend
         </span>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shrink-0 shadow-sm"></span>
-          <span className="text-rose-700 font-semibold text-[11px]">🔴 HIGH RISK</span>
+          <span className="w-3 h-3 rounded-full bg-blue-600 border border-white shrink-0 shadow-sm"></span>
+          <span className="text-blue-700 font-semibold text-[11px]">PRIORITY RISK</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-amber-500 border border-white shrink-0 shadow-sm"></span>
-          <span className="text-amber-800 font-semibold text-[11px]">🟡 MEDIUM RISK</span>
+          <span className="text-amber-800 font-semibold text-[11px]">MEDIUM RISK</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-emerald-600 border border-white shrink-0 shadow-sm"></span>
-          <span className="text-emerald-800 font-semibold text-[11px]">🟢 LOW RISK</span>
+          <span className="text-emerald-800 font-semibold text-[11px]">LOW RISK</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 rounded-full bg-rose-600 border border-white flex items-center justify-center text-[7px] text-white font-black shrink-0 shadow-sm">
+          <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-white flex items-center justify-center text-[7px] text-white font-black shrink-0 shadow-sm">
             CL
           </div>
-          <span className="text-slate-700 font-semibold text-[11px]">● DISEASE CLUSTER</span>
+          <span className="text-slate-700 font-semibold text-[11px]">DISEASE CLUSTER</span>
         </div>
       </div>
 

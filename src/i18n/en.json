@@ -1,9 +1,9 @@
 {
-  "brandTitle": "Pashu-Suraksha AI",
+  "brandTitle": "JeevaRaksha",
   "brandSubtitle": "National Livestock Disease Surveillance & Response Platform",
   "nationalSystem": "National Integrated Animal Health Intelligence System",
   "ministryTitle": "Department of Animal Husbandry & Dairying (DAHD) • Ministry of Fisheries, Animal Husbandry & Dairying",
-  "sihBadge": "Smart India Hackathon 2026",
+  "sihBadge": "National Surveillance Portal",
   "online": "Online",
   "offline": "Offline Mode (Local Storage)",
   "offlineAlert": "Offline mode active: Case reports will be stored in your local outbox and synced automatically when reconnected.",

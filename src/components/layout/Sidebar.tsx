@@ -4,6 +4,7 @@ import { useSurveillanceStore } from '../../store/surveillanceStore';
 import { I18nService } from '../../services/i18nService';
 import { 
   ShieldCheck, 
+  Home,
   LayoutDashboard, 
   Map, 
   FileText, 
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export type ActiveNavSection = 
+  | 'home'
   | 'dashboard' 
   | 'gis' 
   | 'cases' 
@@ -61,6 +63,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badgeColor?: string;
   }> = [
     {
+      id: 'home',
+      label: 'Home & Role Portal',
+      icon: <Home className="w-4 h-4" />
+    },
+    {
       id: 'dashboard',
       label: t('dashboard') || 'Command Center',
       icon: <LayoutDashboard className="w-4 h-4" />
@@ -84,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Alert Center',
       icon: <Bell className="w-4 h-4" />,
       badge: urgentAlertsCount > 0 ? `${urgentAlertsCount} urgent` : undefined,
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
     },
     {
       id: 'vaccination',
@@ -129,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div>
               <span className="font-extrabold text-sm text-slate-900 tracking-tight block leading-tight">
-                Pashu-Suraksha AI
+                JeevaRaksha
               </span>
               <span className="text-[10px] text-slate-500 font-semibold tracking-wide uppercase block">
                 DAHD • Gov of India
@@ -145,27 +152,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Current Role Card */}
-        <div className="p-3.5 mx-3 my-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shrink-0 shadow-xs">
+        {/* User Identity & Active Role Badge */}
+        <div className="p-3.5 mx-3 mt-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+          <span className="text-2xl p-1.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
             {currentRoleInfo.icon}
-          </div>
-          <div className="overflow-hidden">
-            <span className="font-bold text-xs text-slate-900 truncate block">
+          </span>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-bold text-slate-900 block truncate">
               {state.currentUser?.name || currentRoleInfo.title}
             </span>
-            <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider block truncate">
-              {currentRoleInfo.badge}
-            </span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
+                {currentRoleInfo.badge}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Surveillance Operations
-          </div>
-
+        {/* Section Navigation Items */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {navItems.map((item) => {
             const isActive = currentSection === item.id;
             return (
@@ -175,9 +180,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectSection(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600 font-bold shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
@@ -203,10 +208,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Footer info */}
-        <div className="p-3.5 border-t border-slate-200 bg-slate-50 text-[11px] text-slate-500 space-y-1">
+        <div className="p-3.5 border-t border-slate-200 bg-slate-50 text-[11px] text-slate-500 space-y-2">
           <div className="flex items-center justify-between text-[10px]">
             <span>Platform Build</span>
-            <span className="font-mono font-bold text-slate-700">v2.4.0 (SIH)</span>
+            <span className="font-mono font-bold text-slate-700">v2.4.0 (National)</span>
           </div>
           <div className="flex items-center justify-between text-[10px]">
             <span>Database</span>
@@ -214,6 +219,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-blue-600" /> PostgreSQL
             </span>
           </div>
+          <button
+            onClick={() => {
+              onSelectSection('home');
+              onCloseMobile();
+            }}
+            className="w-full mt-1 bg-white hover:bg-blue-50 text-blue-700 border border-slate-300 hover:border-blue-300 rounded-xl py-1.5 px-2 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span>Switch Role / Home Portal</span>
+          </button>
         </div>
       </aside>
     </>
