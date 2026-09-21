@@ -18,9 +18,7 @@ import {
   MapPin,
   Camera,
   Mic,
-  Layers,
   Radio,
-  CheckCircle2,
   Sparkles
 } from 'lucide-react';
 
@@ -29,7 +27,7 @@ interface HomePortalProps {
 }
 
 export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
-  const { state, login, setLanguage, setIsOffline } = useSurveillanceStore();
+  const { state, login, setActiveRole, setLanguage, setIsOffline } = useSurveillanceStore();
 
   const [selectedRole, setSelectedRole] = useState<UserRole>('farmer');
   const [identifier, setIdentifier] = useState(DEMO_USERS.farmer.email);
@@ -41,66 +39,66 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
   const lang = state.language;
   const t = (k: any) => I18nService.get(lang, k);
 
-  // Role metadata
+  // Student-friendly, natural role cards
   const roleCards: Array<{
     role: UserRole;
     name: string;
     title: string;
     icon: string;
     badge: string;
-    clearance: string;
+    level: string;
     description: string;
     features: string[];
   }> = [
     {
       role: 'farmer',
       name: 'Ramesh Patel',
-      title: 'Farmer / Livestock Owner',
+      title: 'Farmer',
       icon: '👨‍🌾',
-      badge: 'Rural Producer',
-      clearance: 'Tier-1 Public Intake',
-      description: 'Report sick animals with clinical symptoms, take lesion photos via live camera, record voice notes, and receive early outbreak advisories.',
-      features: ['Clinical Symptom Reporting', 'Live Lesion Camera & AI Screener', 'Voice Notes (Telugu / Hindi / English)', 'SMS & Voice Ring Alerts']
+      badge: 'Animal Owner',
+      level: 'Farm Level',
+      description: 'Report sick cattle or goats by taking live camera photos of mouth/hoof lesions, speak symptoms in Telugu or Hindi, and receive emergency disease alerts.',
+      features: ['Report Sick Animals', 'Live Camera & Photo Upload', 'Voice Speech-to-Text', 'Nearby Outbreak Alerts']
     },
     {
       role: 'vet',
       name: 'Dr. A. Sharma',
-      title: 'Chief Veterinary Officer',
+      title: 'Veterinary Doctor',
       icon: '👨‍⚕️',
-      badge: 'Command Triage',
-      clearance: 'Tier-2 Clinical Authority',
-      description: 'Review incoming syndromic reports, analyze AI-stratified risk scores, inspect GIS containment buffers, and dispatch emergency response missions.',
-      features: ['Epidemiological Triage', 'GIS 5km/10km Ring Buffer Analysis', 'Rapid Response Mission Dispatch', 'Biosecurity Quarantine Orders']
+      badge: 'Doctor / Officer',
+      level: 'Clinic / Hospital',
+      description: 'Review sick animal cases submitted by farmers, check outbreak hotspots on the district map, send field workers to farms, and issue treatment instructions.',
+      features: ['Review Reported Cases', 'Interactive Disease Map (5km & 10km radius)', 'Dispatch Field Teams', 'Treatment & Safety Orders']
     },
     {
       role: 'field_worker',
       name: 'Pooja Patil',
-      title: 'Field Para-Vet Inspector',
+      title: 'Field Worker',
       icon: '👷',
-      badge: 'Rapid Response',
-      clearance: 'Tier-2 Field Operations',
-      description: 'Conduct on-site farm inspections, verify syndromic case checklists, collect biological swab/blood samples, and record ring vaccinations.',
-      features: ['On-Site Farm Investigations', 'Syndromic Checklist Verification', 'Biological Sample Barcoding', 'Ring Vaccination Logging']
+      badge: 'Field Staff',
+      level: 'Village Visits',
+      description: 'Visit farms to inspect sick animals in person, complete symptom check-lists, collect blood and swab samples for lab testing, and log vaccination doses.',
+      features: ['Farm Visit Tasks', 'Symptom Verification Checklist', 'Sample Collection & Barcoding', 'Vaccination Record Entry']
     },
     {
       role: 'lab_staff',
       name: 'Dr. P. Rao',
-      title: 'Diagnostic Microbiologist',
+      title: 'Lab Staff',
       icon: '🧪',
-      badge: 'RDDL Diagnostic Lab',
-      clearance: 'Tier-3 Laboratory Authority',
-      description: 'Process incoming epidemiological samples, perform RT-PCR and ELISA diagnostic testing, confirm viral strains, and certify molecular results.',
-      features: ['Sample Accession & Tracking', 'RT-PCR / ELISA Assay Verification', 'Viral Strain Identification', 'National Diagnostic Certification']
+      badge: 'Diagnostic Lab',
+      level: 'Testing Lab',
+      description: 'Receive test samples from the field, run RT-PCR and ELISA diagnostic tests, identify the virus or bacteria strain, and publish verified test results.',
+      features: ['Sample Intake & Tracking', 'Run PCR & ELISA Tests', 'Confirm Disease Strain', 'Publish Test Results']
     },
     {
       role: 'admin',
       name: 'Lead Evaluator',
-      title: 'National System Auditor',
+      title: 'System Admin',
       icon: '🛡️',
-      badge: 'National Oversight',
-      clearance: 'Tier-4 Master Clearance',
-      description: 'Oversee the complete 32-step national response lifecycle, audit district containment metrics, and monitor post-intervention decline curves.',
-      features: ['32-Step Master Response Lifecycle', 'District Surveillance Analytics', 'Post-Intervention Decline Curves', 'Cross-State Biosecurity Audit']
+      badge: 'Admin',
+      level: 'System Oversight',
+      description: 'Track the complete 32-step workflow from the first farmer report to total outbreak recovery, view district-wide statistics, and review audit logs.',
+      features: ['32-Step Outbreak Workflow', 'District-wide Statistics', 'Disease Recovery Charts', 'System Logs & Tracking']
     }
   ];
 
@@ -124,14 +122,15 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
     try {
       const success = await login(identifier, password);
       if (success) {
+        setActiveRole(selectedRole);
         if (onLoginSuccess) {
           onLoginSuccess(selectedRole);
         }
       } else {
-        setError(t('loginFailed') || 'Invalid credentials. Please verify your User ID / Email and Password.');
+        setError('Incorrect User ID / Email or Password. Please check your credentials and try again.');
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please verify credentials or server connection.');
+      setError(err.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -141,7 +140,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans antialiased selection:bg-blue-600 selection:text-white">
-      {/* Top Universal Government Navigation Header */}
+      {/* Top Navigation Header */}
       <header className="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -154,11 +153,11 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                   {t('brandTitle') || 'JeevaRaksha'}
                 </span>
                 <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 uppercase tracking-wider">
-                  National Surveillance Portal
+                  Animal Disease Tracking
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 hidden sm:block">
-                Department of Animal Husbandry & Dairying (DAHD) • Government of India
+                Department of Animal Husbandry & Dairying (DAHD)
               </p>
             </div>
           </div>
@@ -175,7 +174,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
               title="Toggle Offline Simulation"
             >
               {state.isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-600" /> : <Wifi className="w-3.5 h-3.5 text-blue-600" />}
-              <span>{state.isOffline ? t('offline') : t('online')}</span>
+              <span>{state.isOffline ? 'Offline Mode' : 'Online'}</span>
             </button>
 
             {/* Language Selector: English | తెలుగు | हिंदी */}
@@ -212,86 +211,86 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
 
       {/* Main Home Portal Body */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
-        {/* Hero Section */}
+        {/* Simple & Clean Student-Written Hero Section */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 px-3.5 py-1 rounded-full text-xs font-bold tracking-wide">
             <Radio className="w-3.5 h-3.5 text-blue-600" />
-            <span>National Integrated Animal Health Intelligence System</span>
+            <span>Animal Health & Disease Monitoring System</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Livestock Disease Surveillance & Early Warning Command Network
+            Livestock Disease Tracking & Response System
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            A unified digital biosecurity platform integrating rural livestock owners, district veterinary officers, rapid field response units, and certified diagnostic laboratories for real-time disease detection and containment.
+            A simple and connected platform that helps farmers report sick animals quickly, doctors track outbreaks on maps, field workers inspect farms, and lab staff test samples.
           </p>
         </div>
 
-        {/* Live Surveillance Status Highlights (Clean White & Blue, No Red) */}
+        {/* Live Project Stats (Clear, Simple, Natural) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Outbreak Status</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Outbreak Areas</span>
               <span className="w-2 h-2 rounded-full bg-blue-600"></span>
             </div>
             <div className="text-lg font-extrabold text-slate-900">
               {state.clusters.filter(c => c.status !== 'CONTAINED').length} Active Zone
             </div>
-            <span className="text-[11px] text-blue-700 font-semibold">Under Active Ring Containment</span>
+            <span className="text-[11px] text-blue-700 font-semibold">Precautionary steps active</span>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Surveillance Cases</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Reported Cases</span>
               <Activity className="w-4 h-4 text-blue-600" />
             </div>
             <div className="text-lg font-extrabold text-slate-900">
-              {state.cases.length} Registered Reports
+              {state.cases.length} Total Reports
             </div>
-            <span className="text-[11px] text-blue-700 font-semibold">District-Wide Continuous Triage</span>
+            <span className="text-[11px] text-blue-700 font-semibold">Under doctor review</span>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Field Response Teams</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Field Tasks</span>
               <UserCheck className="w-4 h-4 text-blue-600" />
             </div>
             <div className="text-lg font-extrabold text-slate-900">
-              {state.missions.length} Missions Dispatched
+              {state.missions.length} Farm Visits Dispatched
             </div>
-            <span className="text-[11px] text-blue-700 font-semibold">Para-Vets on Active Field Duty</span>
+            <span className="text-[11px] text-blue-700 font-semibold">Workers on duty</span>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Laboratory Diagnostics</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Lab Testing</span>
               <Sparkles className="w-4 h-4 text-blue-600" />
             </div>
             <div className="text-lg font-extrabold text-slate-900">
-              {state.samples.length} Samples in RDDL
+              {state.samples.length} Samples in Lab
             </div>
-            <span className="text-[11px] text-blue-700 font-semibold">Molecular RT-PCR & ELISA Tracking</span>
+            <span className="text-[11px] text-blue-700 font-semibold">PCR & ELISA testing</span>
           </div>
         </div>
 
-        {/* PRIMARY INTERACTIVE SECTION: Role Selection & Credential Access */}
+        {/* PRIMARY SECTION: Select Role & Login */}
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
-                  Select Role & Verify Credentials
+                  Select Your Role
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
-                  Access Your Operational Dashboard
+                  Choose Role to Open Dashboard
                 </h2>
               </div>
               <span className="text-xs text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl">
-                Choose a role below to configure credentials and open the dashboard
+                Click any role below to view details and login
               </span>
             </div>
           </div>
 
-          {/* 5 Interactive Role Selection Cards */}
+          {/* 5 Role Selection Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {roleCards.map((r) => {
               const isSelected = selectedRole === r.role;
@@ -329,7 +328,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                   </div>
                   <div className="mt-3 pt-2 border-t border-slate-100">
                     <span className="text-[10px] text-blue-700 font-semibold block">
-                      {r.clearance}
+                      {r.level}
                     </span>
                   </div>
                 </button>
@@ -337,7 +336,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
             })}
           </div>
 
-          {/* Dynamic Credential Verification Form for the Selected Role */}
+          {/* Credential Login Form for Selected Role */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200">
               <div className="flex items-center gap-3">
@@ -345,7 +344,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-extrabold text-base text-slate-900">
-                      {currentRoleCard.title} Authentication Gateway
+                      Login as {currentRoleCard.title}
                     </h3>
                     <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
                       {currentRoleCard.badge}
@@ -357,9 +356,9 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-[11px] text-slate-500 block">Security Clearance:</span>
+                <span className="text-[11px] text-slate-500 block">Access Level:</span>
                 <span className="text-xs font-bold text-blue-700 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg inline-block">
-                  {currentRoleCard.clearance}
+                  {currentRoleCard.level}
                 </span>
               </div>
             </div>
@@ -375,21 +374,21 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    User Identifier / Email
+                    User Email / ID
                   </label>
                   <input
                     type="text"
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Enter registered ID or email"
+                    placeholder="Enter email or ID"
                     className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Access Password / PIN
+                    Password
                   </label>
                   <div className="relative">
                     <input
@@ -426,7 +425,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                   className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  <span>Reset to default verified credentials for this role</span>
+                  <span>Reset to default login credentials for {currentRoleCard.title}</span>
                 </button>
 
                 <button
@@ -437,7 +436,7 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
                   {isAuthenticating ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      <span>Verifying Credentials...</span>
+                      <span>Logging in...</span>
                     </>
                   ) : (
                     <>
@@ -452,15 +451,15 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
 
-        {/* Platform Capabilities Overview */}
+        {/* What This System Does (Simple & Direct) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-2">
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <Camera className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-sm text-slate-900">AI Lesion Screening</h4>
+            <h4 className="font-bold text-sm text-slate-900">Live Camera Photo Check</h4>
             <p className="text-xs text-slate-600">
-              Live camera analysis of mouth blisters, hoof lesions, and skin nodules with instant stratification.
+              Farmers can take photos of mouth sores or hoof wounds directly through the camera for quick symptom checking.
             </p>
           </div>
 
@@ -468,9 +467,9 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <MapPin className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-sm text-slate-900">District GIS Risk Mapping</h4>
+            <h4 className="font-bold text-sm text-slate-900">Village Outbreak Map</h4>
             <p className="text-xs text-slate-600">
-              Interactive 5km infected and 10km surveillance ring buffers with real-time cluster proximity alerts.
+              An interactive map showing which villages have sick animals and 5km/10km safety boundary rings.
             </p>
           </div>
 
@@ -478,9 +477,9 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <Mic className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-sm text-slate-900">Multilingual Voice Reporting</h4>
+            <h4 className="font-bold text-sm text-slate-900">Voice Recording in Local Language</h4>
             <p className="text-xs text-slate-600">
-              Speech-to-text recording in Telugu, Hindi, and English with automated regional audio advisories.
+              Farmers can speak in Telugu, Hindi, or English to describe what happened without typing.
             </p>
           </div>
 
@@ -488,23 +487,23 @@ export const HomePortal: React.FC<HomePortalProps> = ({ onLoginSuccess }) => {
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <WifiOff className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-sm text-slate-900">Offline-First Outbox</h4>
+            <h4 className="font-bold text-sm text-slate-900">Works Without Internet</h4>
             <p className="text-xs text-slate-600">
-              Complete local cache outbox allowing rural reports without connectivity, syncing when online.
+              Save reports safely on your device when there is no network. It automatically uploads when you reconnect.
             </p>
           </div>
         </div>
       </main>
 
-      {/* Universal Institutional Footer */}
+      {/* Universal Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 px-4 sm:px-6 text-center text-xs text-slate-500 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-blue-600" />
-            <span>JeevaRaksha • Department of Animal Husbandry & Dairying (DAHD)</span>
+            <span>JeevaRaksha • Animal Disease Surveillance & Response System</span>
           </div>
           <span className="text-[11px] text-slate-500">
-            Government of India • National Integrated Animal Health Intelligence System
+            Department of Animal Husbandry & Dairying (DAHD)
           </span>
         </div>
       </footer>

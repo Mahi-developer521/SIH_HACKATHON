@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export function App() {
-  const { state, syncOfflineOutbox, removeToast } = useSurveillanceStore();
+  const { state, setActiveRole, syncOfflineOutbox, removeToast } = useSurveillanceStore();
   const [currentSection, setCurrentSection] = useState<ActiveNavSection>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
@@ -39,7 +39,12 @@ export function App() {
   if (!state.isAuthenticated || currentSection === 'home') {
     return (
       <HomePortal 
-        onLoginSuccess={() => setCurrentSection('dashboard')} 
+        onLoginSuccess={(role) => {
+          if (role) {
+            setActiveRole(role);
+          }
+          setCurrentSection('dashboard');
+        }} 
       />
     );
   }

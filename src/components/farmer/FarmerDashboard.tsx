@@ -36,10 +36,36 @@ export const FarmerDashboard: React.FC = () => {
   const lang = state.language;
   const t = (k: any) => I18nService.get(lang, k);
 
-  const activeFarmer = state.farmers[0]; // Ramesh Patel
-  const myCases = state.cases.filter(c => c.farmerId === activeFarmer?.id);
-  const myAlerts = state.alerts.filter(a => a.farmerId === activeFarmer?.id);
-  const outbox = state.offlineOutbox;
+  const activeFarmer = (state.farmers && state.farmers.length > 0)
+    ? (state.farmers.find(f => f.id === state.currentUser?.id) || state.farmers[0])
+    : {
+        id: state.currentUser?.id || 'FARMER-01',
+        name: state.currentUser?.name || 'Ramesh Patel',
+        phone: '+91 94231 44556',
+        village: 'Village A (Rampur)',
+        coordinates: { lat: 18.5362, lng: 73.8741 },
+        animals: []
+      };
+
+  const myCases = (state.cases || []).filter(c => 
+    c.farmerId === activeFarmer.id || 
+    c.farmerId === 'FARMER-01' || 
+    c.farmerId === state.currentUser?.id ||
+    c.farmerName === activeFarmer.name
+  );
+
+  const myAlerts = (state.alerts || []).filter(a => 
+    a.farmerId === activeFarmer.id || 
+    a.farmerId === 'FARMER-01' || 
+    a.farmerId === state.currentUser?.id
+  );
+
+  const outbox = state.offlineOutbox || [];
+  const herd = state.herd || [];
+
+  const topAlert = myAlerts.length > 0 ? myAlerts[0] : null;
+  const topAlertDist = topAlert?.distanceKm ?? 2.8;
+  const topAlertMsg = topAlert?.message || 'Active disease outbreak confirmed in nearby area. Please isolate livestock and report symptoms immediately.';
 
   return (
     <div className="space-y-6">
@@ -67,7 +93,7 @@ export const FarmerDashboard: React.FC = () => {
                 <span>•</span>
                 <span>📞 {activeFarmer?.phone || '+91 94231 44556'}</span>
                 <span>•</span>
-                <span>{t('totalHerd')}: <b className="text-slate-800">{state.herd.length} Registered Livestock</b></span>
+                <span>{t('totalHerd')}: <b className="text-slate-800">{herd.length} Registered Livestock</b></span>
               </p>
             </div>
           </div>
@@ -97,7 +123,7 @@ export const FarmerDashboard: React.FC = () => {
       </div>
 
       {/* Emergency Proximity Alert Banner with Real Telugu Voice Broadcast */}
-      {myAlerts.length > 0 && (
+      {topAlert && (
         <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 shadow-xs space-y-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
@@ -110,11 +136,11 @@ export const FarmerDashboard: React.FC = () => {
                     PRIORITY BIOSECURITY ALERT
                   </span>
                   <span className="text-xs text-blue-900 font-bold">
-                    Active Disease Cluster {myAlerts[0].distanceKm} km from your herd
+                    Active Disease Cluster {topAlertDist} km from your herd
                   </span>
                 </div>
                 <p className="text-xs text-slate-700 mt-1 max-w-2xl leading-relaxed">
-                  {myAlerts[0].message}
+                  {topAlertMsg}
                 </p>
               </div>
             </div>
@@ -122,8 +148,8 @@ export const FarmerDashboard: React.FC = () => {
             {/* Telugu & English Spoken Voice Playback Button */}
             <div className="flex items-center gap-2 shrink-0">
               <VoiceAlertButton
-                textTe={`హెచ్చరిక. మీ ప్రాంతంలో పశువులకు సంబంధించిన వ్యాధి కేసులు పెరుగుతున్నాయి. మీ గ్రామానికి ${myAlerts[0].distanceKm} కిలోమీటర్ల దూరంలో చురుకైన వ్యాప్తి గుర్తించబడింది. దయచేసి మీ పశువులను ఇతర మందలతో కలవకుండా ఉంచండి. నోటిలో బొబ్బలు లేదా అధిక లాలాజలం గమనిస్తే వెంటనే అత్యవసర హెల్ప్‌లైన్ 1962 కు కాల్ చేయండి.`}
-                textEn={`High Risk Alert. Active disease outbreak confirmed within ${myAlerts[0].distanceKm} kilometers of your village. Please isolate milking cattle and notify local veterinary clinic if any oral blisters or drooling are observed.`}
+                textTe={`హెచ్చరిక. మీ ప్రాంతంలో పశువులకు సంబంధించిన వ్యాధి కేసులు పెరుగుతున్నాయి. మీ గ్రామానికి ${topAlertDist} కిలోమీటర్ల దూరంలో చురుకైన వ్యాప్తి గుర్తించబడింది. దయచేసి మీ పశువులను ఇతర మందలతో కలవకుండా ఉంచండి. నోటిలో బొబ్బలు లేదా అధిక లాలాజలం గమనిస్తే వెంటనే అత్యవసర హెల్ప్‌లైన్ 1962 కు కాల్ చేయండి.`}
+                textEn={`High Risk Alert. Active disease outbreak confirmed within ${topAlertDist} kilometers of your village. Please isolate milking cattle and notify local veterinary clinic if any oral blisters or drooling are observed.`}
                 size="md"
                 variant="primary"
                 label="వినండి / Listen (Telugu Voice)"
@@ -369,7 +395,7 @@ export const FarmerDashboard: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {state.herd.length} Registered Livestock in Herd
+              {herd.length} Registered Livestock in Herd
             </h4>
             <button
               onClick={() => setIsAddAnimalOpen(true)}
@@ -380,7 +406,7 @@ export const FarmerDashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {state.herd.map((animal) => (
+            {herd.map((animal) => (
               <div 
                 key={animal.id}
                 className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3"
@@ -411,7 +437,7 @@ export const FarmerDashboard: React.FC = () => {
                   <div className="pt-1">
                     <span className="text-slate-500 block text-[11px] mb-1">Treatment History:</span>
                     <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] text-slate-700">
-                      {animal.treatmentHistory.join(' • ')}
+                      {(animal.treatmentHistory || []).join(' • ')}
                     </div>
                   </div>
                 </div>
@@ -424,7 +450,7 @@ export const FarmerDashboard: React.FC = () => {
                       textTe={`గుర్తుచేయడం. మీ పశువు ట్యాగ్ నంబర్ ${animal.tagNumber} కు ఎఫ్.ఎమ్.డి బూస్టర్ వ్యాక్సినేషన్ గడువు సమీపిస్తోంది. దయచేసి స్థానిక పశువైద్యశాలలో టీకా వేయించండి.`}
                       textEn={`Reminder. Livestock tag number ${animal.tagNumber} is due for FMD booster vaccination. Please visit the local dispensary.`}
                       size="xs"
-                      variant="warning"
+                      variant="primary"
                     />
                   </div>
                 )}
@@ -442,44 +468,48 @@ export const FarmerDashboard: React.FC = () => {
               <MessageSquare className="w-4 h-4 text-blue-600" /> Proximity-Based Disease Broadcasts
             </h4>
 
-            {myAlerts.map((alt) => (
-              <div key={alt.id} className="space-y-3">
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="flex items-center gap-1 font-mono text-blue-700 font-bold">
-                      📱 SMS Broadcast to {alt.farmerPhone}
-                    </span>
-                    <span>Sent: {alt.sentAt}</span>
-                  </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-800 leading-relaxed shadow-xs">
-                    {alt.message}
-                  </div>
-                </div>
-
-                {/* Spoken IVR Voice Call Broadcast */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-blue-100 text-blue-600 shrink-0">
-                      <PhoneCall className="w-5 h-5" />
+            {myAlerts.map((alt) => {
+              const altDist = alt.distanceKm ?? 2.8;
+              const phone = alt.farmerPhone || activeFarmer.phone || '+91 94231 44556';
+              return (
+                <div key={alt.id} className="space-y-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1 font-mono text-blue-700 font-bold">
+                        📱 SMS Broadcast to {phone}
+                      </span>
+                      <span>Sent: {alt.sentAt || 'Recently'}</span>
                     </div>
-                    <div>
-                      <h5 className="font-bold text-xs text-slate-900">Automated Spoken Voice Advisory (IVR)</h5>
-                      <p className="text-[11px] text-slate-500">
-                        High-priority regional voice advisory delivered directly in Telugu / English
-                      </p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-800 leading-relaxed shadow-xs">
+                      {alt.message}
                     </div>
                   </div>
 
-                  <VoiceAlertButton
-                    textTe={`హెచ్చరిక. రైతు రమేష్ పటేల్ గారికి జంతు ఆరోగ్య అత్యవసర హెచ్చరిక. మీ గ్రామానికి ${alt.distanceKm} కిలోమీటర్ల దూరంలో గాలికుంటు వ్యాధి వ్యాప్తి చురుకుగా ఉంది. దయచేసి పశువులను ఇతర మందలతో కలపవద్దు మరియు నోటిలో బొబ్బలు ఉంటే 1962 కి సంప్రదించండి.`}
-                    textEn={`Attention livestock owner. Foot and mouth disease confirmed within ${alt.distanceKm} kilometers. Isolate animals and contact emergency number 1962.`}
-                    size="sm"
-                    variant="danger"
-                    label="వినండి / Listen"
-                  />
+                  {/* Spoken IVR Voice Call Broadcast */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-blue-100 text-blue-600 shrink-0">
+                        <PhoneCall className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h5 className="font-bold text-xs text-slate-900">Automated Spoken Voice Advisory (IVR)</h5>
+                        <p className="text-[11px] text-slate-500">
+                          High-priority regional voice advisory delivered directly in Telugu / English
+                        </p>
+                      </div>
+                    </div>
+
+                    <VoiceAlertButton
+                      textTe={`హెచ్చరిక. రైతు రమేష్ పటేల్ గారికి జంతు ఆరోగ్య అత్యవసర హెచ్చరిక. మీ గ్రామానికి ${altDist} కిలోమీటర్ల దూరంలో గాలికుంటు వ్యాధి వ్యాప్తి చురుకుగా ఉంది. దయచేసి పశువులను ఇతర మందలతో కలపవద్దు మరియు నోటిలో బొబ్బలు ఉంటే 1962 కి సంప్రదించండి.`}
+                      textEn={`Attention livestock owner. Foot and mouth disease confirmed within ${altDist} kilometers. Isolate animals and contact emergency number 1962.`}
+                      size="sm"
+                      variant="primary"
+                      label="వినండి / Listen"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -496,6 +526,29 @@ export const FarmerDashboard: React.FC = () => {
                 textTe="వ్యాధి వ్యాప్తి సమయంలో పశువుల కదలికలను నియంత్రించండి. తెలియని మందలతో మేత భూములు లేదా నీటి తొట్టెలను పంచుకోవద్దు. పశువుల కొట్టాల నేలపై రోజుకు ఒకసారి సున్నం లేదా 2 శాతం సోడియం కార్బోనేట్ ద్రావణాన్ని పిచికారీ చేయండి."
                 textEn="Restrict livestock movement during outbreaks. Do not share common grazing or water troughs. Spray shed floors daily with slaked lime or 2 percent sodium carbonate."
                 size="xs"
+                variant="primary"
+              />
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Restrict livestock movement during regional outbreaks. Do not share grazing commons or open watering ponds with unknown herds.
+            </p>
+            <ul className="text-xs text-slate-600 space-y-1.5 list-disc list-inside pt-1">
+              <li>Spray shed floors daily with slaked lime or 2% sodium carbonate.</li>
+              <li>Wash milking equipment with potassium permanganate solution (1:1000).</li>
+              <li>Quarantine newly purchased cattle for a mandatory 21 days.</li>
+            </ul>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-sm text-blue-700 flex items-center gap-2">
+                📞 అత్యవసర పశువైద్య సేవలు & హెల్ప్‌లైన్
+              </h4>
+              <VoiceAlertButton
+                textTe="జాతీయ పశు ఆరోగ్య టోల్ ఫ్రీ హెల్ప్‌లైన్ నంబర్ 1962. ఇది 24 గంటలు పనిచేసే మొబైల్ పశువైద్య సేవ. ఏదైనా అనారోగ్యం ఉంటే వెంటనే కాల్ చేయండి."
+                textEn="National Animal Health toll free helpline is 1962, a 24/7 mobile veterinary service. Call immediately if any sickness is observed."
+                size="xs"
+                variant="primary"
               />
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">

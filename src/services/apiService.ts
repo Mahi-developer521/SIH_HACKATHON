@@ -75,7 +75,13 @@ export class ApiService {
       body: JSON.stringify({ email: emailOrId, password: pass })
     });
 
-    const result = await response.json();
+    let result: any;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(`Authentication server returned status ${response.status}. Falling back to offline authentication.`);
+    }
+
     if (!response.ok || !result.success) {
       throw new Error(result.error || 'Authentication failed. Please verify credentials.');
     }

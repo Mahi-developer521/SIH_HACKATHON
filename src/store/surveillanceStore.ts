@@ -126,12 +126,26 @@ export const DEMO_USERS: Record<string, CurrentUser & { pass: string; email: str
 };
 
 const getInitialState = (): SurveillanceState => {
+  // Pre-seed initial active alerts
+  const initialAlerts = ProximityEngine.generateTargetedAlerts(SEED_CLUSTER_001, MOCK_FARMERS);
+
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       return {
         ...parsed,
+        cases: (parsed.cases && parsed.cases.length > 0) ? parsed.cases : INITIAL_CASES,
+        clusters: (parsed.clusters && parsed.clusters.length > 0) ? parsed.clusters : [SEED_CLUSTER_001],
+        villages: (parsed.villages && parsed.villages.length > 0) ? parsed.villages : MOCK_VILLAGES,
+        facilities: (parsed.facilities && parsed.facilities.length > 0) ? parsed.facilities : MOCK_FACILITIES,
+        farmers: (parsed.farmers && parsed.farmers.length > 0) ? parsed.farmers : MOCK_FARMERS,
+        herd: (parsed.herd && parsed.herd.length > 0) ? parsed.herd : MOCK_HERD,
+        missions: parsed.missions || [],
+        samples: parsed.samples || [],
+        interventions: parsed.interventions || [],
+        alerts: (parsed.alerts && parsed.alerts.length > 0) ? parsed.alerts : initialAlerts,
+        systemLogs: parsed.systemLogs || [],
         toasts: [],
         offlineOutbox: parsed.offlineOutbox || [],
         language: parsed.language || 'en',
@@ -142,9 +156,6 @@ const getInitialState = (): SurveillanceState => {
       // Fallback
     }
   }
-
-  // Pre-seed initial active alerts
-  const initialAlerts = ProximityEngine.generateTargetedAlerts(SEED_CLUSTER_001, MOCK_FARMERS);
 
   return {
     isAuthenticated: false, // Protected by default: requires login
@@ -342,12 +353,14 @@ export class SurveillanceStoreManager {
     } catch (err: any) {
       console.warn('[SurveillanceStore] Backend login attempt notice:', err.message);
       // Fallback check against DEMO_USERS for offline demo evaluation
+      const trimmedId = identifier.trim().toLowerCase();
       const demoUser = Object.values(DEMO_USERS).find(u => 
-        (u.phoneOrEmail.toLowerCase() === identifier.toLowerCase() ||
-         u.email.toLowerCase() === identifier.toLowerCase() ||
-         u.id.toLowerCase() === identifier.toLowerCase() ||
-         u.name.toLowerCase() === identifier.toLowerCase()) &&
-        (pass === u.pass || pass === '1234' || pass === 'demo')
+        (u.phoneOrEmail.toLowerCase() === trimmedId ||
+         u.email.toLowerCase() === trimmedId ||
+         u.id.toLowerCase() === trimmedId ||
+         u.name.toLowerCase() === trimmedId ||
+         u.role.toLowerCase() === trimmedId) &&
+        (pass === u.pass || pass === '1234' || pass === 'demo' || pass === 'farmer123' || pass === 'vet123' || pass === 'field123' || pass === 'lab123' || pass === 'admin123')
       );
 
       if (demoUser) {

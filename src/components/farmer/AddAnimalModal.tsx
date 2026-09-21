@@ -11,7 +11,7 @@ interface Props {
 export const AddAnimalModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { state, addAnimalToHerd } = useSurveillanceStore();
 
-  const [tagNumber, setTagNumber] = useState(`IND-9021-00${state.herd.length + 1}`);
+  const [tagNumber, setTagNumber] = useState(`IND-9021-00${(state.herd?.length || 0) + 1}`);
   const [species, setSpecies] = useState<AnimalType>('Cattle');
   const [breed, setBreed] = useState('Gir Indigenous Cow');
   const [ageYears, setAgeYears] = useState(3);

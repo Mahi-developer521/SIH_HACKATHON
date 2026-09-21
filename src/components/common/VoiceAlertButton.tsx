@@ -36,8 +36,9 @@ export const VoiceAlertButton: React.FC<VoiceAlertButtonProps> = ({
     : textEn;
 
   useEffect(() => {
+    const textSafe = (textToSpeak || '').trim();
     const unsubscribe = VoiceService.subscribe((isSpeaking, speakingText) => {
-      setIsPlaying(isSpeaking && speakingText === textToSpeak.trim());
+      setIsPlaying(isSpeaking && speakingText === textSafe);
     });
     return () => unsubscribe();
   }, [textToSpeak]);
@@ -61,20 +62,20 @@ export const VoiceAlertButton: React.FC<VoiceAlertButtonProps> = ({
   // Button variant styles
   const variantClasses = {
     emerald: isPlaying
-      ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-emerald-500/30'
-      : 'bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 border-emerald-700/60 shadow-emerald-950/40',
+      ? 'bg-blue-700 text-white font-bold border-blue-600 shadow-sm'
+      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-xs',
     danger: isPlaying
-      ? 'bg-rose-500 text-white font-bold border-rose-400 shadow-rose-500/30'
-      : 'bg-rose-950/80 hover:bg-rose-900/90 text-rose-200 border-rose-700/60 shadow-rose-950/40',
+      ? 'bg-blue-700 text-white font-bold border-blue-600 shadow-sm'
+      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-xs',
     warning: isPlaying
-      ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-amber-500/30'
-      : 'bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border-amber-700/60 shadow-amber-950/40',
+      ? 'bg-blue-700 text-white font-bold border-blue-600 shadow-sm'
+      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-xs',
     primary: isPlaying
-      ? 'bg-blue-500 text-white font-bold border-blue-400 shadow-blue-500/30'
-      : 'bg-blue-950/80 hover:bg-blue-900/90 text-blue-200 border-blue-700/60 shadow-blue-950/40',
+      ? 'bg-blue-700 text-white font-bold border-blue-600 shadow-sm'
+      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-xs',
     subtle: isPlaying
-      ? 'bg-slate-700 text-white font-bold border-slate-600'
-      : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700'
+      ? 'bg-slate-200 text-slate-900 font-bold border-slate-300'
+      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
   }[variant];
 
   const defaultLabel = targetLang === 'te' 

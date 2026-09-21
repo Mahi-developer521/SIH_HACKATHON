@@ -43,12 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const t = (k: any) => I18nService.get(lang, k);
 
   const roleLabels: Record<UserRole, { title: string; badge: string; icon: string }> = {
-    farmer: { title: 'Livestock Owner', badge: 'Rural Producer', icon: '👨‍🌾' },
-    vet: { title: 'Veterinary Officer', badge: 'Command Triage', icon: '👨‍⚕️' },
-    field_worker: { title: 'Field Para-Vet', badge: 'Rapid Response', icon: '👷' },
-    lab_staff: { title: 'Lab Microbiologist', badge: 'RDDL Division', icon: '🧪' },
-    flow_inspector: { title: 'Central Auditor', badge: 'Surveillance QA', icon: '🧭' },
-    admin: { title: 'System Admin', badge: 'National Oversight', icon: '🛡️' }
+    farmer: { title: 'Farmer', badge: 'Animal Owner', icon: '👨‍🌾' },
+    vet: { title: 'Veterinary Doctor', badge: 'Doctor / Officer', icon: '👨‍⚕️' },
+    field_worker: { title: 'Field Worker', badge: 'Field Staff', icon: '👷' },
+    lab_staff: { title: 'Lab Staff', badge: 'Diagnostic Lab', icon: '🧪' },
+    flow_inspector: { title: 'System Auditor', badge: 'Auditor', icon: '🧭' },
+    admin: { title: 'System Admin', badge: 'Admin', icon: '🛡️' }
   };
 
   const currentRoleInfo = roleLabels[state.activeRole] || roleLabels.farmer;
@@ -64,50 +64,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     {
       id: 'home',
-      label: 'Home & Role Portal',
+      label: 'Home & Roles',
       icon: <Home className="w-4 h-4" />
     },
     {
       id: 'dashboard',
-      label: t('dashboard') || 'Command Center',
+      label: 'Dashboard',
       icon: <LayoutDashboard className="w-4 h-4" />
     },
     {
       id: 'gis',
-      label: 'GIS Risk Map',
+      label: 'Disease Map',
       icon: <Map className="w-4 h-4" />,
       badge: 'Live',
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
     },
     {
       id: 'cases',
-      label: t('caseManagement') || 'Case Directory',
+      label: 'Reported Cases',
       icon: <FileText className="w-4 h-4" />,
       badge: state.cases.length,
       badgeColor: 'bg-slate-100 text-slate-700 border-slate-200'
     },
     {
       id: 'alerts',
-      label: 'Alert Center',
+      label: 'Emergency Alerts',
       icon: <Bell className="w-4 h-4" />,
       badge: urgentAlertsCount > 0 ? `${urgentAlertsCount} urgent` : undefined,
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
     },
     {
       id: 'vaccination',
-      label: 'Vaccination Prophylaxis',
+      label: 'Vaccine Tracker',
       icon: <Syringe className="w-4 h-4" />
     },
     {
       id: 'lifecycle',
-      label: 'Response Lifecycle',
+      label: '32-Step Workflow',
       icon: <GitMerge className="w-4 h-4" />,
-      badge: '32-Step',
+      badge: '32 Steps',
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
     },
     {
       id: 'monitoring',
-      label: 'Outcome Monitoring',
+      label: 'Recovery Progress',
       icon: <Activity className="w-4 h-4" />
     }
   ];
@@ -139,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 JeevaRaksha
               </span>
               <span className="text-[10px] text-slate-500 font-semibold tracking-wide uppercase block">
-                DAHD • Gov of India
+                Animal Health Monitoring
               </span>
             </div>
           </div>
@@ -227,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full mt-1 bg-white hover:bg-blue-50 text-blue-700 border border-slate-300 hover:border-blue-300 rounded-xl py-1.5 px-2 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
           >
             <Home className="w-3.5 h-3.5" />
-            <span>Switch Role / Home Portal</span>
+            <span>Switch Role / Home</span>
           </button>
         </div>
       </aside>

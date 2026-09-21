@@ -45,36 +45,36 @@ export const Header: React.FC<HeaderProps> = ({
 
   const sectionTitles: Record<ActiveNavSection, { title: string; subtitle: string }> = {
     home: {
-      title: 'National Surveillance Home Portal',
-      subtitle: 'Operational role selection and biosecurity command gateway'
+      title: 'Home & Role Selection',
+      subtitle: 'Choose your role and login to your dashboard'
     },
     dashboard: {
-      title: t('commandCenter') || 'Livestock Health Command Center',
-      subtitle: 'Real-time epidemiological dashboard and triage'
+      title: t('commandCenter') || 'Main Dashboard',
+      subtitle: 'Real-time overview of animal health reports and active tasks'
     },
     gis: {
-      title: 'District GIS Risk Map',
-      subtitle: 'Geospatial risk buffers, cluster hotspots, and village surveillance'
+      title: 'Disease Map & High-Risk Areas',
+      subtitle: 'View active outbreak locations and 5km/10km safety rings'
     },
     cases: {
-      title: t('caseManagement') || 'Epidemiological Case Directory',
-      subtitle: 'District-wide clinical case database and field response dispatch'
+      title: t('caseManagement') || 'Reported Cases',
+      subtitle: 'List of all sick animal reports submitted by farmers'
     },
     alerts: {
-      title: 'Epidemic Alert Center',
-      subtitle: 'Real-time early warning triggers and high-morbidity alerts'
+      title: 'Emergency Alerts',
+      subtitle: 'Nearby disease warnings and village notifications'
     },
     vaccination: {
-      title: 'District Vaccination Surveillance',
-      subtitle: 'Prophylaxis coverage, herd immunity gap tracking, and schedules'
+      title: 'Vaccine Tracking',
+      subtitle: 'Monitor herd vaccinations and preventive doses given'
     },
     lifecycle: {
-      title: '32-Step Master Response Lifecycle',
-      subtitle: 'Closed-loop national surveillance and outbreak containment protocol'
+      title: '32-Step Response Workflow',
+      subtitle: 'Step-by-step outbreak response and recovery guide'
     },
     monitoring: {
-      title: 'Outcome Monitoring & Audit',
-      subtitle: 'Post-intervention decline curves and epidemiological validation'
+      title: 'Recovery Progress',
+      subtitle: 'Track recovery progress and disease decline in affected areas'
     }
   };
 
@@ -82,11 +82,11 @@ export const Header: React.FC<HeaderProps> = ({
   const highRiskAlerts = state.cases.filter(c => c.riskLevel === 'HIGH').length + state.clusters.filter(c => c.status !== 'CONTAINED').length;
 
   const rolesList: Array<{ role: UserRole; label: string; icon: string }> = [
-    { role: 'farmer', label: t('farmer') || 'Farmer', icon: '👨‍🌾' },
-    { role: 'vet', label: t('vet') || 'Veterinary Officer', icon: '👨‍⚕️' },
-    { role: 'field_worker', label: t('fieldWorker') || 'Field Para-Vet', icon: '👷' },
-    { role: 'lab_staff', label: t('labStaff') || 'Lab Microbiologist', icon: '🧪' },
-    { role: 'admin', label: t('admin') || 'Central Auditor', icon: '🛡️' }
+    { role: 'farmer', label: 'Farmer', icon: '👨‍🌾' },
+    { role: 'vet', label: 'Veterinary Doctor', icon: '👨‍⚕️' },
+    { role: 'field_worker', label: 'Field Worker', icon: '👷' },
+    { role: 'lab_staff', label: 'Lab Staff', icon: '🧪' },
+    { role: 'admin', label: 'System Admin', icon: '🛡️' }
   ];
 
   return (
