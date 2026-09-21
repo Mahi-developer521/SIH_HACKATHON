@@ -1,5 +1,5 @@
 // Pashu-Suraksha AI Service Worker for Offline Operation
-const CACHE_NAME = 'pashu-suraksha-cache-v1';
+const CACHE_NAME = 'pashu-suraksha-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -31,20 +31,15 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Navigation or static asset requests: Cache first, fallback to network
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request)
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
+
+  // For navigation / HTML: Network-first, fallback to cache for offline
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
         .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            networkResponse.type === 'basic' &&
-            event.request.method === 'GET'
-          ) {
+          if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
@@ -53,11 +48,26 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // Fallback to cached index.html for navigation when offline
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
-    })
+          return caches.match('/index.html') || caches.match('/');
+        })
+    );
+    return;
+  }
+
+  // For other assets: Network first with cache fallback
+  event.respondWith(
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
