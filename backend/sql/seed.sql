@@ -2,15 +2,18 @@
 -- SEED DATA: PASHU-SURAKSHA AI SURVEILLANCE BASELINE
 -- ==========================================================
 
--- 1. USERS
+-- 1. USERS (Hashed passwords for SIH Demonstration)
 INSERT INTO users (id, name, role, phone_or_email, password_hash, designation, location)
 VALUES
-  ('FARMER-01', 'Ramesh Patel', 'farmer', '9423144556', '1234', 'Registered Livestock Farmer', 'Village A (Rampur)'),
-  ('VET-01', 'Dr. A. Sharma', 'vet', 'vet.sharma@surveillance.gov.in', 'vet123', 'Chief Veterinary Officer', 'District Veterinary Hospital'),
-  ('FW-04', 'Pooja Patil', 'field_worker', 'FW-04', 'field123', 'Field Para-Vet Inspector', 'Kalyanpur Rural Sub-Division'),
-  ('LAB-01', 'Dr. P. Rao', 'lab_staff', 'lab.rddl@surveillance.gov.in', 'lab123', 'Senior Microbiologist (RDDL)', 'Regional Disease Diagnostic Lab'),
-  ('ADMIN-01', 'Lead Evaluator', 'flow_inspector', 'evaluator@sih.gov.in', 'admin123', 'Master System Auditor', 'National Surveillance Command')
-ON CONFLICT (id) DO NOTHING;
+  ('FARMER-01', 'Ramesh Patel', 'farmer', 'farmer@example.com', '$2b$10$FaidPjQfoMR6x7w9JfdsZOacFNe/HwZfuw9HOprFkbHn7RHvvRouu', 'Registered Livestock Farmer', 'Village A (Rampur)'),
+  ('VET-01', 'Dr. A. Sharma', 'vet', 'vet@example.com', '$2b$10$8H0nAmYKXvHQ1V0GWNVAPu56l62dqYThp8gdKKGLzYGQUuw3Ane.O', 'Chief Veterinary Officer', 'District Veterinary Hospital'),
+  ('FW-04', 'Pooja Patil', 'field_worker', 'fieldworker@example.com', '$2b$10$ARQlX8OXjPq6MC7Sv0/8LelmmNqmTZBLHeN8i90G6U7518jKECLGq', 'Field Para-Vet Inspector', 'Kalyanpur Rural Sub-Division'),
+  ('LAB-01', 'Dr. P. Rao', 'lab_staff', 'lab@example.com', '$2b$10$hMv9eN.6LtihGR2/rHzYLOckfM420in7gekNUPR4FKalPxaKc.dZy', 'Senior Microbiologist (RDDL)', 'Regional Disease Diagnostic Lab'),
+  ('ADMIN-01', 'Lead Evaluator', 'admin', 'admin@example.com', '$2b$10$z8IKQZMGLIr6G9sa2MeRqOhqpOsLj6hsyDZ2VzuqQ..UQadRWa2Oa', 'Master System Auditor', 'National Surveillance Command')
+ON CONFLICT (id) DO UPDATE SET
+  phone_or_email = EXCLUDED.phone_or_email,
+  password_hash = EXCLUDED.password_hash,
+  role = EXCLUDED.role;
 
 -- 2. VILLAGES
 INSERT INTO villages (name, latitude, longitude, total_livestock, vaccinated_livestock, coverage_percent, active_risk_zone)

@@ -10,10 +10,21 @@ import { GisMap } from './components/gis/GisMap';
 import { OutcomeMonitoringView } from './components/monitoring/OutcomeMonitoringView';
 import { useSurveillanceStore } from './store/surveillanceStore';
 import { I18nService } from './services/i18nService';
-import { Map, Activity, ShieldCheck, WifiOff, RefreshCw } from 'lucide-react';
+import { 
+  Map, 
+  Activity, 
+  ShieldCheck, 
+  WifiOff, 
+  RefreshCw, 
+  CheckCircle2, 
+  AlertTriangle, 
+  AlertCircle, 
+  Info, 
+  X 
+} from 'lucide-react';
 
 export function App() {
-  const { state, syncOfflineOutbox } = useSurveillanceStore();
+  const { state, syncOfflineOutbox, removeToast } = useSurveillanceStore();
   const [showGlobalGis, setShowGlobalGis] = useState(false);
   const [showOutcomeLoop, setShowOutcomeLoop] = useState(false);
 
@@ -58,10 +69,10 @@ export function App() {
         {state.activeRole === 'vet' && <VetDashboard />}
         {state.activeRole === 'field_worker' && <FieldWorkerDashboard />}
         {state.activeRole === 'lab_staff' && <LabDashboard />}
-        {state.activeRole === 'flow_inspector' && <MasterFlowView />}
+        {(state.activeRole === 'flow_inspector' || state.activeRole === 'admin') && <MasterFlowView />}
 
         {/* Global Quick-Action Drawer Toggles for Judges / Presenters */}
-        {state.activeRole !== 'flow_inspector' && (
+        {state.activeRole !== 'flow_inspector' && state.activeRole !== 'admin' && (
           <div className="pt-4 border-t border-slate-900 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -111,6 +122,42 @@ export function App() {
           </div>
         )}
       </main>
+
+      {/* Floating Toast Notification Container */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
+        {state.toasts?.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto flex items-start gap-2.5 p-3.5 rounded-xl shadow-2xl text-xs backdrop-blur-md border transition-all ${
+              toast.type === 'error'
+                ? 'bg-rose-950/95 text-rose-200 border-rose-700/80 shadow-rose-950/60'
+                : toast.type === 'warning'
+                ? 'bg-amber-950/95 text-amber-200 border-amber-700/80 shadow-amber-950/60'
+                : toast.type === 'info'
+                ? 'bg-blue-950/95 text-blue-200 border-blue-700/80 shadow-blue-950/60'
+                : 'bg-emerald-950/95 text-emerald-200 border-emerald-700/80 shadow-emerald-950/60'
+            }`}
+          >
+            <div className="shrink-0 mt-0.5">
+              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
+              {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
+              {toast.type === 'info' && <Info className="w-4 h-4 text-blue-400" />}
+              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+            </div>
+            <div className="flex-1">
+              {toast.title && <p className="font-bold leading-tight">{toast.title}</p>}
+              <p className="text-slate-300 text-[11px] mt-0.5 leading-snug">{toast.message}</p>
+            </div>
+            <button
+              onClick={() => removeToast(toast.id)}
+              className="text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+              title="Dismiss notification"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-500">

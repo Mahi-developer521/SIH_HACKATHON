@@ -4,12 +4,14 @@ const cors = require('cors');
 const db = require('./db');
 const errorHandler = require('./middleware/errorHandler');
 
+const path = require('path');
 const reportRoutes = require('./routes/reportRoutes');
 const missionRoutes = require('./routes/missionRoutes');
 const investigationRoutes = require('./routes/investigationRoutes');
 const labRoutes = require('./routes/labRoutes');
 const interventionRoutes = require('./routes/interventionRoutes');
 const animalRoutes = require('./routes/animalRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +22,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Serve uploaded disease images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Body parsers with payload limit support for image data
 app.use(express.json({ limit: '10mb' }));
@@ -59,6 +64,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Mount Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/missions', missionRoutes);
 app.use('/api/investigations', investigationRoutes);

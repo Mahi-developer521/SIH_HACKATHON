@@ -1,6 +1,6 @@
-export type UserRole = 'farmer' | 'vet' | 'field_worker' | 'lab_staff' | 'flow_inspector';
+export type UserRole = 'farmer' | 'vet' | 'field_worker' | 'lab_staff' | 'flow_inspector' | 'admin';
 
-export type Language = 'en' | 'hi' | 'mr';
+export type Language = 'en' | 'te' | 'hi';
 
 export interface CurrentUser {
   id: string;
@@ -46,8 +46,13 @@ export interface CaseReport {
   deadCount: number;
   symptoms: string[];
   photoUrl?: string;
+  imageUrl?: string;
+  imageFilename?: string;
+  imageUploadedAt?: string;
   voiceRecordingUrl?: string;
   voiceTranscript?: string;
+  voiceLanguage?: string;
+  reportedLanguage?: string;
   coordinates: Coordinates;
   submittedAt: string;
   status: CaseStatus;
@@ -80,7 +85,11 @@ export interface OfflineQueuedCase {
   deadCount: number;
   symptoms: string[];
   photoUrl?: string;
+  imageUrl?: string;
+  imageFilename?: string;
   voiceTranscript?: string;
+  voiceLanguage?: string;
+  reportedLanguage?: string;
   coordinates: Coordinates;
   village: string;
   queuedAt: string;

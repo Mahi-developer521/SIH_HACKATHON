@@ -10,8 +10,7 @@ The platform implements the complete **32-Step Closed-Loop Master Architecture**
 
 1. **Farmer (Signal Ingestion)**:
    - Species, herd size, sick/dead count, standardized symptom checklist.
-   - Multi-modal reporting with photo preview and interactive voice memo audio recording with automated speech-to-text transcript.
-   - GPS coordinate capture and automatic case generation (`CASE-1024`).
+   - Multi-modal reporting: Camera capture & device photo upload, multilingual voice-based reporting with speech-to-text, and GPS coordinates (`CASE-1024`).
 2. **Data Validation Engine (Step 5)**:
    - Enforces schema validity, herd count bounds, duplicate submission suppression within 12 hours, and symptom canonicalization.
 3. **AI Intelligence Engine (Steps 6-11)**:
@@ -59,28 +58,31 @@ The platform implements the complete **32-Step Closed-Loop Master Architecture**
 
 ## 🏛️ Full-Stack Architecture (React + Express + PostgreSQL)
 
-The platform is a production-grade full-stack distributed system:
-
 ```
 ┌────────────────────────────────────────────────────────┐
 │               React Frontend (Vite + TS)               │
 │  - Role Portals (Farmer, Vet, Field Worker, Lab, Admin)│
 │  - Offline Outbox (PWA + localStorage sync on online)  │
 │  - Interactive 9-Layer Leaflet GIS Risk Map            │
+│  - Multilingual Support (English, తెలుగు, हिंदी)      │
+│  - Live Device Camera & Voice Speech-to-Text Input     │
 └──────────────────────────┬─────────────────────────────┘
-                           │ REST API (/api/*)
+                           │ REST API (/api/* with Bearer JWT)
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │            Node.js + Express Backend API               │
+│  - Real RBAC Auth (bcrypt password hashes + JWT)       │
 │  - Strict Data Validation & Canonicalization           │
 │  - Multi-Factor AI Risk Scoring Engine                 │
-│  - Dual-Mode Resilience (PostgreSQL + Seed Fallback)   │
+│  - Multer Image Uploads (/api/reports/upload-image)    │
+│  - Dual-Mode Resilience (PostgreSQL + Demo Fallback)   │
 └──────────────────────────┬─────────────────────────────┘
                            │ pg Connection Pool
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │              PostgreSQL Relational DB                  │
 │  - Relational Schema (14 Tables, Constraints, Indexes) │
+│  - Users, Reports, Disease Clusters, Audit Logs        │
 │  - Full ACID Audit Trail & Epidemiological History     │
 └────────────────────────────────────────────────────────┘
 ```
@@ -90,116 +92,237 @@ The platform is a production-grade full-stack distributed system:
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) v18+ (Tested on Node v24)
+- [Node.js](https://nodejs.org/) v18+ (Tested on Node v20/v22/v24)
 - npm v9+
-- [PostgreSQL](https://www.postgresql.org/) v14+ (Local instance or Cloud PostgreSQL e.g. Neon, Supabase, Aiven, RDS)
+- [PostgreSQL](https://www.postgresql.org/) v14+ (Local PostgreSQL, pgAdmin 4, or Cloud PostgreSQL like Supabase/Neon/RDS)
 
 ---
 
-### Step 1: Start Backend (Express + PostgreSQL)
+### Step 1: Database Setup (PostgreSQL)
+
+1. Open **pgAdmin 4** or `psql` and create a new database:
+   ```sql
+   CREATE DATABASE livestock_db;
+   ```
+
+2. Configure environment variables in `backend/.env` (copy from `backend/.env.example`):
+   ```env
+   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/livestock_db
+   PORT=5000
+   JWT_SECRET=sih-2026-pashu-suraksha-secure-jwt-key
+   NODE_ENV=development
+   ```
+
+3. Run the schema creation and demo seed script:
+   ```bash
+   cd backend
+   npm run db:init
+   ```
+   *This executes `backend/sql/schema.sql` and `backend/sql/seed.sql` to initialize all 14 tables and demo users with secure bcrypt hashes.*
+
+> **Dual-Mode Fallback**: If PostgreSQL is temporarily offline during quick hackathon evaluation, the backend automatically operates in an in-memory resilient mode with seed data and bcrypt verification, ensuring zero crashes. When PostgreSQL is connected, all queries execute directly on the database.
+
+---
+
+### Step 2: Start Backend (Express + PostgreSQL)
 
 ```bash
 cd backend
 
-# 1. Install backend dependencies
+# Install backend dependencies
 npm install
 
-# 2. Configure Database URL in backend/.env
-# (Copy from backend/.env.example)
-# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/livestock_db
-# PORT=5000
-
-# 3. Initialize PostgreSQL schema and seed demonstration data
-npm run db:init
-
-# 4. Start the Express API server
+# Start Express server
 npm start
-# (Backend runs on http://localhost:5000 with health check at http://localhost:5000/api/health)
 ```
-
-> **Note on Resilient Dual-Mode**: If PostgreSQL is temporarily offline or not yet configured, the backend automatically operates in in-memory fallback mode with seed data, ensuring zero developer friction or crashes. Once PostgreSQL is started, all queries execute directly on PostgreSQL.
+*Backend runs on `http://localhost:5000` with static uploads served at `http://localhost:5000/uploads`.*
 
 ---
 
-### Step 2: Start Frontend (React + Vite)
+### Step 3: Start Frontend (React + Vite)
 
 In a new terminal window at the project root:
 
 ```bash
-# 1. Install frontend dependencies (if not already done)
+# Install frontend dependencies
 npm install
 
-# 2. Start Vite development server
+# Start Vite dev server
 npm run dev
-
-# 3. Open your browser:
-# http://localhost:3000
 ```
-*(Requests to `/api/*` are automatically proxied from port 3000 to the Express backend on port 5000).*
+*Frontend runs on `http://localhost:3000`. Requests to `/api/*` and `/uploads/*` are automatically proxied to the Express backend on port 5000.*
 
 ---
 
 ### Production Build
 ```bash
-# Build React frontend
-npm run build
-
-# Preview build
-npm run preview
+npm run build     # Runs tsc and vite build (0 errors)
+npm run preview   # Previews production bundle
 ```
 
 ---
 
-## 📁 Project Structure
+## 🔐 Real Role-Based Access Control (RBAC) & Demo Credentials
+
+The platform enforces true backend-driven authentication using JWT tokens and bcrypt password hashing. Login is performed via a unified email/password form with automatic role dispatching.
+
+For evaluation, 1-click quick-fill buttons are provided on the login gateway:
+
+| Role | Email / Identifier | Password | Access Scope & Primary Capabilities |
+| :--- | :--- | :--- | :--- |
+| **👨‍🌾 Farmer** | `farmer@example.com` | `farmer123` | Multi-case reporting, camera photo capture, multilingual voice reporting, offline outbox, herd registry, proximity alerts, spoken voice advisories |
+| **👨‍⚕️ Veterinary Officer** | `vet@example.com` | `vet123` | AI Alert triage, mission dispatch, clinical verification, intervention authorization (Ring vaccination/quarantine), village coverage |
+| **👷 Field Worker** | `fieldworker@example.com` | `field123` | Field missions, herd examination, lesion verification, photo capture, sample collection & lab dispatch |
+| **🧪 Lab Staff** | `lab@example.com` | `lab123` | Biological sample intake, molecular assays (RT-PCR, ELISA, Antigen), CT value reporting, result certification & transmission |
+| **🛡️ System Admin** | `admin@example.com` | `admin123` | 32-step master architecture pipeline inspector, national surveillance audit logs, system health & user management |
+
+---
+
+## 🌐 First-Class Telugu, Hindi & English Localization
+
+The application provides accurate, respectful localization across the entire platform:
+- **English (`en`)**: Complete terminology, clinical scoring, and field workflows (`src/i18n/en.json`).
+- **తెలుగు (`te`)**: Natural, respectful, and accurate Telugu Unicode for rural Andhra Pradesh and Telangana livestock owners (`src/i18n/te.json`).
+- **हिंदी (`hi`)**: Complete vernacular translation for northern livestock belts (`src/i18n/hi.json`).
+
+The language switcher in the navbar allows instant toggling: `English | తెలుగు | हिंदी`. The user's language preference is automatically persisted across reloads in `localStorage`.
+
+---
+
+## 📸 Camera Capture & Image Upload
+
+Integrated directly into the Farmer Case Reporting workflow (`src/components/farmer/ReportCaseModal.tsx`):
+- **Method A: Upload from Device**:
+  - File picker accepting `.jpg`, `.jpeg`, `.png`, `.webp`.
+  - Client-side validation enforcing a 5MB size limit.
+  - Image preview with file size badge, remove, and replace controls.
+- **Method B: Live Device Camera**:
+  - Direct access to device camera stream via `navigator.mediaDevices.getUserMedia`.
+  - Live viewfinder with reticle overlay.
+  - Instant snapshot capture with review, retake, and confirm actions.
+- **Backend Storage**:
+  - Uploaded images are sent via `POST /api/reports/upload-image` with `multipart/form-data`.
+  - Stored securely in `backend/uploads/` with timestamped unique filenames.
+  - Tracked in PostgreSQL `disease_reports` via `image_url`, `image_filename`, and `image_uploaded_at`.
+
+---
+
+## 🎙️ Multilingual Voice-Based Reporting
+
+Empowers rural farmers who prefer speaking over typing:
+- **Dynamic Speech Recognition**: Utilizes browser Web Speech API dynamically configured for the active language:
+  - Telugu: `te-IN`
+  - English: `en-IN`
+  - Hindi: `hi-IN`
+- **Interactive Controls**:
+  - Pulsing recording indicator with elapsed time counter.
+  - Real-time live transcription stream.
+  - Editable transcript textarea so farmers can review, amend, or add additional notes.
+- **AI Decision Support**:
+  - Smart symptom extraction suggestions from the spoken voice transcript.
+  - Explicit advisory badge indicating that AI suggestions assist decision-making and final diagnosis requires veterinary confirmation.
+- **Persistence**: Voice transcript and language metadata (`voice_transcript`, `voice_language`, `reported_language`) are saved directly in the case report and synced to PostgreSQL.
+
+---
+
+## 📴 Offline Mode & Resilient Auto-Sync
+
+Designed for rural areas with intermittent connectivity:
+- **Offline Simulation Toggle**: Click the `ONLINE / OFFLINE` button in the top navbar or login screen to simulate loss of cellular network.
+- **Outbox Queue**: Any reports filed while offline are saved to the browser's local persistent outbox (`OUTBOX-001`, etc.).
+- **Automatic Sync**: As soon as connectivity is restored (or when clicking **Sync Now**), all queued reports are processed through the validation pipeline, AI risk engine, and cluster detection.
+- **PWA Ready**: Includes `manifest.json` and service worker (`sw.js`) for progressive web app caching.
+
+---
+
+## 📡 REST API Reference
+
+All protected endpoints accept a `Bearer <token>` in the `Authorization` header.
+
+### Authentication (`/api/auth`)
+- `POST /api/auth/login`: Authenticate user with `{ email, password }`. Returns JWT token and user profile.
+- `GET /api/auth/me`: Retrieve current authenticated user profile from token.
+- `POST /api/auth/logout`: Invalidate session.
+
+### Case Reports (`/api/reports`)
+- `GET /api/reports`: List all disease reports.
+- `GET /api/reports/:id`: Get report by ID.
+- `POST /api/reports`: Create new disease report (includes validation, AI risk evaluation, and cluster check).
+- `POST /api/reports/upload-image`: Upload case image file (Multipart form, max 5MB).
+- `PATCH /api/reports/:id/status`: Update case status.
+
+### Missions (`/api/missions`)
+- `GET /api/missions`: List field missions.
+- `POST /api/missions`: Create response mission.
+- `PATCH /api/missions/:id/status`: Update mission status.
+
+### Field Investigations (`/api/investigations`)
+- `GET /api/investigations`: List investigations.
+- `POST /api/investigations`: Submit on-site investigation details.
+
+### Diagnostics & Lab (`/api/lab`)
+- `GET /api/lab/samples`: List lab samples.
+- `POST /api/lab/samples`: Dispatch biological sample.
+- `POST /api/lab/results`: Upload certified lab result.
+
+### Interventions (`/api/interventions`)
+- `GET /api/interventions`: List interventions (ring vaccination, quarantine).
+- `POST /api/interventions`: Authorize new intervention.
+
+### Herd Registry (`/api/animals`)
+- `GET /api/animals`: List registered livestock.
+- `POST /api/animals`: Register new animal to herd.
+
+---
+
+## 📁 Repository Directory Layout
 
 ```
 livestock-surveillance-platform/
 ├── backend/
-│   ├── .env.example            # Sample environment config
-│   ├── package.json            # Express, pg, cors, dotenv dependencies
-│   ├── server.js               # Express API entry point & route registration
-│   ├── db.js                   # PostgreSQL connection pool with fallback
-│   ├── middleware/
-│   │   └── errorHandler.js     # Centralized API error response handler
 │   ├── controllers/
-│   │   ├── reportController.js # Disease reports & AI risk evaluation
-│   │   ├── missionController.js# Vet response missions
-│   │   ├── investigationController.js # Field inspections
-│   │   ├── labController.js    # Diagnostic samples & molecular results
-│   │   ├── interventionController.js # Quarantines & ring vaccination
-│   │   └── animalController.js # Herd registry
-│   ├── routes/                 # Express REST route definitions
+│   │   ├── authController.js        # JWT login, me, logout
+│   │   ├── reportController.js      # Reports, AI scoring & image upload
+│   │   ├── missionController.js     # Vet response missions
+│   │   ├── investigationController.js # Field investigations
+│   │   ├── labController.js         # Lab samples & results
+│   │   ├── interventionController.js# Ring vaccination & quarantines
+│   │   └── animalController.js      # Herd registry
+│   ├── middleware/
+│   │   ├── auth.js                  # verifyToken & requireRole RBAC middleware
+│   │   ├── upload.js                # Multer 5MB file upload validation
+│   │   └── errorHandler.js          # Centralized error responses
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── reportRoutes.js
+│   │   ├── missionRoutes.js
+│   │   ├── investigationRoutes.js
+│   │   ├── labRoutes.js
+│   │   ├── interventionRoutes.js
+│   │   └── animalRoutes.js
 │   ├── scripts/
-│   │   └── initDb.js           # Automated schema & seed migration runner
-│   └── sql/
-│       ├── schema.sql          # 14 Relational PostgreSQL DDL tables
-│       └── seed.sql            # Demonstration baseline epidemiological seed
+│   │   └── initDb.js                # Database initialization runner
+│   ├── sql/
+│   │   ├── schema.sql               # 14 Relational DDL tables with constraints
+│   │   └── seed.sql                 # Demo users with bcrypt hashes & baseline cases
+│   ├── uploads/
+│   │   └── .gitkeep                 # Upload directory tracking (images gitignored)
+│   ├── db.js                        # PostgreSQL connection pool with memory fallback
+│   ├── server.js                    # Express app entrypoint & static serving
+│   ├── .env.example                 # Example configuration
+│   └── package.json
 ├── src/
-│   ├── main.tsx
-│   ├── App.tsx
-│   ├── types/
-│   │   └── surveillance.ts     # Domain types & interfaces
-│   ├── data/
-│   │   └── mockData.ts         # Baseline epidemiological seed data
-│   ├── services/
-│   │   ├── apiService.ts       # Full-stack REST API client
-│   │   ├── validationService.ts# Data validation & duplicate detection
-│   │   ├── aiEngine.ts         # Symptom scoring & anomaly detection
-│   │   └── proximityEngine.ts  # Haversine distance & alert engine
-│   ├── store/
-│   │   └── surveillanceStore.ts# Full-stack state store with PostgreSQL sync
 │   ├── components/
-│   │   ├── common/
-│   │   │   ├── Navbar.tsx          # Universal role switcher & status bar
-│   │   │   └── MasterFlowView.tsx  # Interactive 32-step pipeline inspector
-│   │   ├── gis/
-│   │   │   └── GisMap.tsx          # 9-layer Leaflet GIS risk map
 │   │   ├── auth/
-│   │   │   └── AuthGateway.tsx     # Role-based login gateway with demo credentials
+│   │   │   └── AuthGateway.tsx      # Professional government login portal
+│   │   ├── common/
+│   │   │   ├── Navbar.tsx           # Language switcher (EN/TE/HI) & user badge
+│   │   │   └── MasterFlowView.tsx   # 32-step surveillance pipeline inspector
 │   │   ├── farmer/
-│   │   │   ├── FarmerDashboard.tsx # Farmer dashboard with multi-report & speech audio
-│   │   │   ├── ReportCaseModal.tsx # Multi-modal reporting + voice + GPS
-│   │   │   └── AddAnimalModal.tsx  # Register new animal to herd
+│   │   │   ├── FarmerDashboard.tsx  # Farmer-first priority layout
+│   │   │   ├── ReportCaseModal.tsx  # Camera capture, image upload & voice reporting
+│   │   │   ├── CameraScanner.tsx    # Dedicated AI visual lesion scanner
+│   │   │   └── AddAnimalModal.tsx   # Herd animal registration
 │   │   ├── vet/
 │   │   │   ├── VetDashboard.tsx
 │   │   │   ├── CreateMissionModal.tsx
@@ -210,66 +333,37 @@ livestock-surveillance-platform/
 │   │   ├── lab/
 │   │   │   ├── LabDashboard.tsx
 │   │   │   └── EnterResultModal.tsx
+│   │   ├── gis/
+│   │   │   └── GisMap.tsx           # 9-layer Leaflet GIS risk map
 │   │   └── monitoring/
 │   │       └── OutcomeMonitoringView.tsx
+│   ├── i18n/
+│   │   ├── en.json                  # English localization dictionary
+│   │   ├── te.json                  # First-class Telugu Unicode dictionary
+│   │   └── hi.json                  # Hindi localization dictionary
+│   ├── services/
+│   │   ├── apiService.ts            # Frontend REST client with JWT header
+│   │   ├── i18nService.ts           # Language loader & persistent storage
+│   │   ├── aiEngine.ts              # Symptom weighting & anomaly velocity
+│   │   ├── validationService.ts     # Duplicate check & canonicalization
+│   │   └── proximityEngine.ts       # Haversine distance & alert engine
+│   ├── store/
+│   │   └── surveillanceStore.ts     # Global state, toasts & backend sync
+│   ├── types/
+│   │   └── surveillance.ts          # TypeScript domain interfaces
+│   ├── App.tsx                      # Root component with toast container
+│   ├── main.tsx
 │   └── styles/
 │       └── index.css
+├── .gitignore
+├── package.json
+├── vite.config.ts
+└── README.md
 ```
 
 ---
 
-## 🔐 Role-Based Demo Credentials
-
-The platform features an enterprise role-based authentication portal with 1-click Quick Login and manual credential verification:
-
-| Role | Name / Title | Phone / Email / ID | Password / PIN | Capabilities |
-| :--- | :--- | :--- | :--- | :--- |
-| **👨‍🌾 Farmer** | Ramesh Patel | `9423144556` | `1234` | Multi-case reporting, voice memos, GPS auto-detect, herd registry, proximity alerts, spoken audio advisories |
-| **👨‍⚕️ Veterinarian** | Dr. A. Sharma | `vet.sharma@surveillance.gov.in` | `vet123` | AI Alert triage, mission dispatch, clinical verification, intervention authorization (Ring vaccination/quarantine) |
-| **👷 Field Worker** | Pooja Patil | `FW-04` | `field123` | Field missions, herd examination, lesion verification, photo capture, sample collection & lab dispatch |
-| **🧪 Lab Staff** | Dr. P. Rao (RDDL) | `lab.rddl@surveillance.gov.in` | `lab123` | Sample intake, RT-PCR / ELISA / Antigen assays, CT value reporting, result certification & transmission |
-
----
-
-## 🌐 Multilingual Support (English, Hindi, Marathi)
-
-Switch effortlessly between languages anytime via the language selector in the top navbar or login gateway:
-- **English (`en`)**: Complete terminology, clinical scoring, and field workflows.
-- **हिन्दी (`hi`)**: Full vernacular translation for symptoms, triage status, advisories, and actions.
-- **मराठी (`mr`)**: Native regional language support for Maharashtra rural livestock belts.
-
----
-
-## ⚡ Multi-Reporting for Farmers
-
-Farmers can report sick animals multiple times sequentially without being blocked by duplicate filters:
-1. Click **"Report Sick Animal"** on the Farmer Dashboard.
-2. Enter animal details, symptoms, voice memo, and photos.
-3. Review the instant AI risk score and next actions.
-4. Click **"Report Another Case"** to immediately report a second or third animal.
-5. All reported cases (`CASE-1024`, `CASE-1025`, etc.) are tracked simultaneously in the **My Cases** feed.
-6. Click any case card to view its complete 6-stage lifecycle dossier.
-
----
-
-## 📴 Offline Mode & Auto-Sync Engine
-
-Designed for rural areas with intermittent connectivity:
-- **Offline Simulation Toggle**: Click the `ONLINE / OFFLINE` button in the top navbar or login screen to simulate loss of cellular network.
-- **Outbox Queue**: Any reports filed while offline are saved to the browser's local persistent outbox (`OUTBOX-001`, etc.).
-- **Automatic Sync**: As soon as connectivity is restored (or when clicking **Sync Now**), all queued reports are processed through the validation pipeline, AI risk engine, and cluster detection.
-- **PWA Ready**: Includes `manifest.json` and service worker (`sw.js`) for progressive web app caching.
-
----
-
-## 📸 Live Camera & Lesion Photo Upload Scanner
-
-Integrated directly into the Farmer Dashboard for immediate lesion assessment:
-- **Live Device Camera Viewfinder**: Accesses the webcam or phone camera with a real-time HUD scanning reticle, facing-mode toggle (front/rear), and 1-click snapshot capture.
-- **Photo Upload from File**: Select image files directly from local storage or mobile gallery (`capture="environment"`).
-- **Clinical Pathology Reference Library**: Instant test samples for Foot & Mouth Disease (oral vesicles and hoof ulcerations), Lumpy Skin Disease (cutaneous nodules), and healthy controls.
-- **Instant AI Computer Vision Screening**: Classifies lesions with confidence scores (e.g., 94% FMD suspicion), summarizes visual examination findings, and automatically correlates symptoms.
-- **Direct Case Reporting**: Click **"Report Case With This Photo"** to open the reporting form with the photo and symptoms automatically pre-filled.
-- **In-Modal Camera**: The report modal also includes an integrated camera viewfinder for taking snapshots on the spot.
-
-
+## 🏆 Smart India Hackathon 2026 Ready
+- **Government Visual Standards**: Built with modern, clean UI, clear visual hierarchy, accessible color coding, and responsive design.
+- **Complete Closed Loop**: Signals travel seamlessly from Farmer $\rightarrow$ AI Validation $\rightarrow$ GIS Zones $\rightarrow$ Vet Triage $\rightarrow$ Field Mission $\rightarrow$ Lab Verification $\rightarrow$ Intervention $\rightarrow$ Outcome Monitoring.
+- **Multilingual & Offline**: Accessible in Telugu, Hindi, and English; resilient to rural connectivity drops.

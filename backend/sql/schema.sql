@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
-  role VARCHAR(50) NOT NULL CHECK (role IN ('farmer', 'vet', 'field_worker', 'lab_staff', 'flow_inspector')),
+  role VARCHAR(50) NOT NULL CHECK (role IN ('farmer', 'vet', 'field_worker', 'lab_staff', 'flow_inspector', 'admin')),
   phone_or_email VARCHAR(150) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   designation VARCHAR(150),
@@ -87,7 +87,12 @@ CREATE TABLE IF NOT EXISTS disease_reports (
   dead_count INTEGER NOT NULL CHECK (dead_count >= 0),
   symptoms TEXT[] NOT NULL,
   photo_url TEXT,
+  image_url TEXT,
+  image_filename VARCHAR(255),
+  image_uploaded_at TIMESTAMP WITH TIME ZONE,
   voice_transcript TEXT,
+  voice_language VARCHAR(20) DEFAULT 'en-IN',
+  reported_language VARCHAR(10) DEFAULT 'en',
   latitude DECIMAL(9,6) NOT NULL,
   longitude DECIMAL(9,6) NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'SUBMITTED' CHECK (
@@ -223,7 +228,30 @@ CREATE TABLE IF NOT EXISTS alerts (
   sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 15. NOTIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  type VARCHAR(50) DEFAULT 'INFO',
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 16. SYSTEM AUDIT LOGS
+CREATE TABLE IF NOT EXISTS system_audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(50),
+  user_role VARCHAR(50),
+  action VARCHAR(150) NOT NULL,
+  details TEXT,
+  ip_address VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- INDEXES FOR FAST EPIDEMIOLOGICAL QUERYING
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(phone_or_email);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_farmer ON disease_reports(farmer_id);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_status ON disease_reports(status);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_village ON disease_reports(village);
@@ -231,3 +259,4 @@ CREATE INDEX IF NOT EXISTS idx_disease_reports_created ON disease_reports(submit
 CREATE INDEX IF NOT EXISTS idx_response_missions_worker ON response_missions(assigned_worker_id);
 CREATE INDEX IF NOT EXISTS idx_lab_samples_case ON lab_samples(case_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_farmer ON alerts(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);

@@ -67,6 +67,12 @@ export const Navbar: React.FC = () => {
       icon: '🧭',
       badge: 'Central Auditor',
       color: 'teal'
+    },
+    admin: {
+      title: 'National Surveillance Administration',
+      icon: '🛡️',
+      badge: 'System Administrator',
+      color: 'emerald'
     }
   };
 
@@ -132,7 +138,7 @@ export const Navbar: React.FC = () => {
             </button>
           )}
 
-          {/* Multilingual Selector */}
+          {/* Multilingual Selector: English | తెలుగు | हिंदी */}
           <div className="flex items-center gap-0.5 bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-[10px]">
             <Globe className="w-3 h-3 text-slate-400 ml-1 mr-0.5" />
             <button
@@ -140,24 +146,27 @@ export const Navbar: React.FC = () => {
               className={`px-1.5 py-0.5 rounded font-bold transition-all ${
                 state.language === 'en' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
+              title="English"
             >
-              EN
+              English
+            </button>
+            <button
+              onClick={() => setLanguage('te')}
+              className={`px-1.5 py-0.5 rounded font-bold transition-all ${
+                state.language === 'te' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Telugu (తెలుగు)"
+            >
+              తెలుగు
             </button>
             <button
               onClick={() => setLanguage('hi')}
               className={`px-1.5 py-0.5 rounded font-bold transition-all ${
                 state.language === 'hi' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
+              title="Hindi (हिंदी)"
             >
-              हिन्दी
-            </button>
-            <button
-              onClick={() => setLanguage('mr')}
-              className={`px-1.5 py-0.5 rounded font-bold transition-all ${
-                state.language === 'mr' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              मराठी
+              हिंदी
             </button>
           </div>
 

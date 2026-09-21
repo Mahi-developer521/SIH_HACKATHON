@@ -21,6 +21,54 @@ pool.on('error', (err) => {
 });
 
 // Seed data fallback store when PostgreSQL server is starting up, offline, or unconfigured
+const memoryUsers = [
+  {
+    id: 'FARMER-01',
+    name: 'Ramesh Patel',
+    role: 'farmer',
+    phone_or_email: 'farmer@example.com',
+    password_hash: '$2b$10$FaidPjQfoMR6x7w9JfdsZOacFNe/HwZfuw9HOprFkbHn7RHvvRouu',
+    designation: 'Registered Livestock Farmer',
+    location: 'Village A (Rampur)'
+  },
+  {
+    id: 'VET-01',
+    name: 'Dr. A. Sharma',
+    role: 'vet',
+    phone_or_email: 'vet@example.com',
+    password_hash: '$2b$10$8H0nAmYKXvHQ1V0GWNVAPu56l62dqYThp8gdKKGLzYGQUuw3Ane.O',
+    designation: 'Chief Veterinary Officer',
+    location: 'District Veterinary Hospital'
+  },
+  {
+    id: 'FW-04',
+    name: 'Pooja Patil',
+    role: 'field_worker',
+    phone_or_email: 'fieldworker@example.com',
+    password_hash: '$2b$10$ARQlX8OXjPq6MC7Sv0/8LelmmNqmTZBLHeN8i90G6U7518jKECLGq',
+    designation: 'Field Para-Vet Inspector',
+    location: 'Kalyanpur Rural Sub-Division'
+  },
+  {
+    id: 'LAB-01',
+    name: 'Dr. P. Rao',
+    role: 'lab_staff',
+    phone_or_email: 'lab@example.com',
+    password_hash: '$2b$10$hMv9eN.6LtihGR2/rHzYLOckfM420in7gekNUPR4FKalPxaKc.dZy',
+    designation: 'Senior Microbiologist (RDDL)',
+    location: 'Regional Disease Diagnostic Lab'
+  },
+  {
+    id: 'ADMIN-01',
+    name: 'Lead Evaluator',
+    role: 'admin',
+    phone_or_email: 'admin@example.com',
+    password_hash: '$2b$10$z8IKQZMGLIr6G9sa2MeRqOhqpOsLj6hsyDZ2VzuqQ..UQadRWa2Oa',
+    designation: 'Master System Auditor',
+    location: 'National Surveillance Command'
+  }
+];
+
 const memoryReports = [
   {
     id: 'CASE-1020',
@@ -178,6 +226,19 @@ async function query(text, params = []) {
   // In-Memory Fallback Query Simulator
   const normalizedText = text.trim().toLowerCase();
 
+  // 0. SELECT users
+  if (normalizedText.includes('from users')) {
+    if (params.length > 0) {
+      const identifier = String(params[0]).toLowerCase();
+      const match = memoryUsers.find(u => 
+        u.phone_or_email.toLowerCase() === identifier || 
+        u.id.toLowerCase() === identifier
+      );
+      return { rows: match ? [{ ...match }] : [], rowCount: match ? 1 : 0 };
+    }
+    return { rows: memoryUsers.map(u => ({ ...u })), rowCount: memoryUsers.length };
+  }
+
   // 1. SELECT all reports
   if (normalizedText.includes('from disease_reports dr') && !normalizedText.includes('where dr.id')) {
     return {
@@ -299,5 +360,6 @@ module.exports = {
   query,
   testConnection,
   isPostgresConnected: () => isPostgresConnected,
-  getMemoryReports: () => memoryReports
+  getMemoryReports: () => memoryReports,
+  getMemoryUsers: () => memoryUsers
 };

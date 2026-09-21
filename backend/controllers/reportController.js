@@ -364,8 +364,12 @@ async function createReport(req, res, next) {
       sickCount,
       deadCount,
       symptoms: standardizedSymptoms,
-      photoUrl,
+      photoUrl: resolvedImageUrl,
+      imageUrl: resolvedImageUrl,
+      imageFilename: resolvedImageFilename,
       voiceTranscript,
+      voiceLanguage: resolvedVoiceLanguage,
+      reportedLanguage: resolvedReportedLanguage,
       coordinates: { lat, lng },
       submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       status: initialStatus,
@@ -380,10 +384,40 @@ async function createReport(req, res, next) {
 
     res.status(201).json({
       success: true,
-      message: `Disease report ${caseId} successfully recorded in PostgreSQL`,
+      message: `Disease report ${caseId} created and evaluated by AI surveillance engine`,
       data: responsePayload
     });
 
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/reports/upload-image
+ * Validates and stores image in backend/uploads/
+ */
+async function uploadImage(req, res, next) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No image file uploaded. Please select a valid JPEG, PNG, or WebP image.'
+      });
+    }
+
+    const relativeUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      success: true,
+      data: {
+        imageUrl: relativeUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        uploadedAt: new Date().toISOString()
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -413,6 +447,7 @@ async function updateReport(req, res, next) {
 
     res.json({
       success: true,
+      message: `Report ${id} updated to status ${status}`,
       data: result.rows[0]
     });
   } catch (err) {
@@ -424,5 +459,7 @@ module.exports = {
   getReports,
   getReportById,
   createReport,
-  updateReport
+  uploadImage,
+  updateReport,
+  evaluateRisk
 };

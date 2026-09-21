@@ -28,8 +28,16 @@ import { ValidationService } from '../services/validationService';
 import { AiEngine } from '../services/aiEngine';
 import { ProximityEngine } from '../services/proximityEngine';
 import { ApiService } from '../services/apiService';
+import { I18nService } from '../services/i18nService';
 
 const STORAGE_KEY = 'LIVESTOCK_SURVEILLANCE_STATE_V2';
+
+export interface ToastNotification {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title?: string;
+  message: string;
+}
 
 export interface SurveillanceState {
   isAuthenticated: boolean;
@@ -37,6 +45,7 @@ export interface SurveillanceState {
   activeRole: UserRole;
   language: Language;
   isOffline: boolean;
+  toasts: ToastNotification[];
   offlineOutbox: OfflineQueuedCase[];
   cases: CaseReport[];
   clusters: DiseaseCluster[];
@@ -53,21 +62,23 @@ export interface SurveillanceState {
   systemLogs: string[];
 }
 
-export const DEMO_USERS: Record<UserRole, CurrentUser & { pass: string }> = {
+export const DEMO_USERS: Record<string, CurrentUser & { pass: string; email: string }> = {
   farmer: {
     id: 'FARMER-01',
     name: 'Ramesh Patel',
     role: 'farmer',
-    phoneOrEmail: '9423144556',
+    phoneOrEmail: 'farmer@example.com',
+    email: 'farmer@example.com',
     designation: 'Registered Livestock Farmer',
     location: 'Village A (Rampur)',
-    pass: '1234'
+    pass: 'farmer123'
   },
   vet: {
     id: 'VET-01',
     name: 'Dr. A. Sharma',
     role: 'vet',
-    phoneOrEmail: 'vet.sharma@surveillance.gov.in',
+    phoneOrEmail: 'vet@example.com',
+    email: 'vet@example.com',
     designation: 'Chief Veterinary Officer',
     location: 'District Veterinary Hospital',
     pass: 'vet123'
@@ -76,7 +87,8 @@ export const DEMO_USERS: Record<UserRole, CurrentUser & { pass: string }> = {
     id: 'FW-04',
     name: 'Pooja Patil',
     role: 'field_worker',
-    phoneOrEmail: 'FW-04',
+    phoneOrEmail: 'fieldworker@example.com',
+    email: 'fieldworker@example.com',
     designation: 'Field Para-Vet Inspector',
     location: 'Kalyanpur Rural Sub-Division',
     pass: 'field123'
@@ -85,16 +97,28 @@ export const DEMO_USERS: Record<UserRole, CurrentUser & { pass: string }> = {
     id: 'LAB-01',
     name: 'Dr. P. Rao',
     role: 'lab_staff',
-    phoneOrEmail: 'lab.rddl@surveillance.gov.in',
+    phoneOrEmail: 'lab@example.com',
+    email: 'lab@example.com',
     designation: 'Senior Microbiologist (RDDL)',
     location: 'Regional Disease Diagnostic Lab',
     pass: 'lab123'
   },
+  admin: {
+    id: 'ADMIN-01',
+    name: 'Lead Evaluator',
+    role: 'admin',
+    phoneOrEmail: 'admin@example.com',
+    email: 'admin@example.com',
+    designation: 'Master System Auditor',
+    location: 'National Surveillance Command',
+    pass: 'admin123'
+  },
   flow_inspector: {
     id: 'ADMIN-01',
     name: 'Lead Evaluator',
-    role: 'flow_inspector',
-    phoneOrEmail: 'evaluator@sih.gov.in',
+    role: 'admin',
+    phoneOrEmail: 'admin@example.com',
+    email: 'admin@example.com',
     designation: 'Master System Auditor',
     location: 'National Surveillance Command',
     pass: 'admin123'
@@ -108,9 +132,11 @@ const getInitialState = (): SurveillanceState => {
       const parsed = JSON.parse(saved);
       return {
         ...parsed,
+        toasts: [],
         offlineOutbox: parsed.offlineOutbox || [],
         language: parsed.language || 'en',
-        isOffline: parsed.isOffline || false
+        isOffline: parsed.isOffline || false,
+        isAuthenticated: !!ApiService.getAuthToken() && !!parsed.currentUser
       };
     } catch {
       // Fallback
@@ -121,11 +147,12 @@ const getInitialState = (): SurveillanceState => {
   const initialAlerts = ProximityEngine.generateTargetedAlerts(SEED_CLUSTER_001, MOCK_FARMERS);
 
   return {
-    isAuthenticated: true, // Default to demo-ready state logged in as Farmer
-    currentUser: DEMO_USERS.farmer,
+    isAuthenticated: false, // Protected by default: requires login
+    currentUser: null,
     activeRole: 'farmer',
     language: 'en',
     isOffline: false,
+    toasts: [],
     offlineOutbox: [],
     cases: INITIAL_CASES,
     clusters: [SEED_CLUSTER_001],
@@ -271,48 +298,106 @@ export class SurveillanceStoreManager {
     }
   }
 
+  // --- Toast Notification System ---
+  static showToast(type: 'success' | 'error' | 'info' | 'warning', message: string, title?: string) {
+    const id = `toast-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    const newToast: ToastNotification = { id, type, message, title };
+    this.setState(s => ({
+      ...s,
+      toasts: [...s.toasts, newToast]
+    }));
+
+    // Auto-dismiss after 4.5 seconds
+    setTimeout(() => {
+      this.removeToast(id);
+    }, 4500);
+  }
+
+  static removeToast(id: string) {
+    this.setState(s => ({
+      ...s,
+      toasts: s.toasts.filter(t => t.id !== id)
+    }));
+  }
+
   // --- Authentication & Roles ---
-  static login(role: UserRole, identifier: string, pass: string): boolean {
-    const user = DEMO_USERS[role];
-    if (user && (identifier === user.phoneOrEmail || identifier.toLowerCase() === user.name.toLowerCase() || identifier === 'demo') && (pass === user.pass || pass === 'demo' || pass === '1234')) {
-      this.setState(s => ({
-        ...s,
-        isAuthenticated: true,
-        currentUser: user,
-        activeRole: role,
-        systemLogs: [`User logged in as ${user.name} (${user.designation})`, ...s.systemLogs]
-      }));
-      return true;
+  static async login(identifier: string, pass: string): Promise<boolean> {
+    try {
+      // 1. Authenticate against real backend /api/auth/login
+      const result = await ApiService.login(identifier, pass);
+      if (result && result.user) {
+        let role = result.user.role;
+        if (role === 'flow_inspector') role = 'admin';
+
+        this.setState(s => ({
+          ...s,
+          isAuthenticated: true,
+          currentUser: result.user,
+          activeRole: role as UserRole,
+          systemLogs: [`User logged in as ${result.user.name} (${result.user.designation}) via PostgreSQL`, ...s.systemLogs]
+        }));
+        this.showToast('success', `Welcome, ${result.user.name}! Authenticated as ${result.user.designation || result.user.role}.`);
+        return true;
+      }
+    } catch (err: any) {
+      console.warn('[SurveillanceStore] Backend login attempt notice:', err.message);
+      // Fallback check against DEMO_USERS for offline demo evaluation
+      const demoUser = Object.values(DEMO_USERS).find(u => 
+        (u.phoneOrEmail.toLowerCase() === identifier.toLowerCase() ||
+         u.email.toLowerCase() === identifier.toLowerCase() ||
+         u.id.toLowerCase() === identifier.toLowerCase() ||
+         u.name.toLowerCase() === identifier.toLowerCase()) &&
+        (pass === u.pass || pass === '1234' || pass === 'demo')
+      );
+
+      if (demoUser) {
+        let role = demoUser.role;
+        if (role === 'flow_inspector') role = 'admin';
+
+        this.setState(s => ({
+          ...s,
+          isAuthenticated: true,
+          currentUser: demoUser,
+          activeRole: role as UserRole,
+          systemLogs: [`Offline Demo login as ${demoUser.name} (${demoUser.designation})`, ...s.systemLogs]
+        }));
+        this.showToast('info', `Demo session started as ${demoUser.name} (${demoUser.role}).`);
+        return true;
+      }
+
+      this.showToast('error', err.message || 'Authentication failed. Please verify credentials.');
+      return false;
     }
     return false;
   }
 
-  static quickLogin(role: UserRole) {
-    const user = DEMO_USERS[role];
-    this.setState(s => ({
-      ...s,
-      isAuthenticated: true,
-      currentUser: user,
-      activeRole: role,
-      systemLogs: [`Quick login as ${user.name} (${user.designation})`, ...s.systemLogs]
-    }));
+  static async quickLogin(role: UserRole) {
+    const roleKey = (role === 'flow_inspector' ? 'admin' : role) as string;
+    const demo = DEMO_USERS[roleKey] || DEMO_USERS[role];
+    if (demo) {
+      await this.login(demo.email, demo.pass);
+    }
   }
 
-  static logout() {
+  static async logout() {
+    await ApiService.logout();
     this.setState(s => ({
       ...s,
       isAuthenticated: false,
       currentUser: null,
       systemLogs: ['User logged out from session.', ...s.systemLogs]
     }));
+    this.showToast('info', 'You have been signed out successfully.');
   }
 
   static setActiveRole(role: UserRole) {
-    const user = DEMO_USERS[role] || this.state.currentUser;
+    const roleKey = (role === 'flow_inspector' ? 'admin' : role) as string;
+    const user = DEMO_USERS[roleKey] || DEMO_USERS[role] || this.state.currentUser;
     this.setState(s => ({ ...s, activeRole: role, currentUser: user }));
   }
 
   static setLanguage(lang: Language) {
+    I18nService.saveLanguage(lang);
     this.setState(s => ({ ...s, language: lang }));
   }
 
@@ -342,7 +427,11 @@ export class SurveillanceStoreManager {
     deadCount: number;
     symptoms: string[];
     photoUrl?: string;
+    imageUrl?: string;
+    imageFilename?: string;
     voiceTranscript?: string;
+    voiceLanguage?: string;
+    reportedLanguage?: string;
     coordinates: { lat: number; lng: number };
     village: string;
   }): Promise<CaseReport> {
@@ -359,8 +448,12 @@ export class SurveillanceStoreManager {
         sickCount: formData.sickCount,
         deadCount: formData.deadCount,
         symptoms: formData.symptoms,
-        photoUrl: formData.photoUrl,
+        photoUrl: formData.imageUrl || formData.photoUrl,
+        imageUrl: formData.imageUrl || formData.photoUrl,
+        imageFilename: formData.imageFilename,
         voiceTranscript: formData.voiceTranscript,
+        voiceLanguage: formData.voiceLanguage || 'en-IN',
+        reportedLanguage: formData.reportedLanguage || state.language,
         coordinates: formData.coordinates,
         village: formData.village || activeFarmer.village,
         queuedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
@@ -372,6 +465,8 @@ export class SurveillanceStoreManager {
         offlineOutbox: [queuedItem, ...s.offlineOutbox],
         systemLogs: [log, ...s.systemLogs]
       }));
+
+      this.showToast('info', `Offline Mode: Report ${queueId} saved to your local outbox. It will auto-sync when online.`);
 
       // Return a provisional offline case representation
       const provisionalCase: CaseReport = {
@@ -385,6 +480,12 @@ export class SurveillanceStoreManager {
         sickCount: formData.sickCount,
         deadCount: formData.deadCount,
         symptoms: formData.symptoms,
+        photoUrl: formData.imageUrl || formData.photoUrl,
+        imageUrl: formData.imageUrl || formData.photoUrl,
+        imageFilename: formData.imageFilename,
+        voiceTranscript: formData.voiceTranscript,
+        voiceLanguage: formData.voiceLanguage,
+        reportedLanguage: formData.reportedLanguage,
         coordinates: formData.coordinates,
         submittedAt: queuedItem.queuedAt,
         status: 'SUBMITTED',
@@ -409,8 +510,12 @@ export class SurveillanceStoreManager {
         sickCount: formData.sickCount,
         deadCount: formData.deadCount,
         symptoms: formData.symptoms,
-        photoUrl: formData.photoUrl,
+        photoUrl: formData.imageUrl || formData.photoUrl,
+        imageUrl: formData.imageUrl || formData.photoUrl,
+        imageFilename: formData.imageFilename,
         voiceTranscript: formData.voiceTranscript,
+        voiceLanguage: formData.voiceLanguage || 'en-IN',
+        reportedLanguage: formData.reportedLanguage || state.language,
         coordinates: formData.coordinates
       });
 
@@ -448,6 +553,7 @@ export class SurveillanceStoreManager {
         systemLogs: [logEntry, ...s.systemLogs]
       }));
 
+      this.showToast('success', `Case ${apiCase.id} successfully analyzed by AI: Risk Score ${apiCase.riskScore} (${apiCase.riskLevel}).`);
       return apiCase;
     } catch (apiErr: any) {
       console.warn('[SurveillanceStore] API submission notice, using resilient fallback:', apiErr.message);
@@ -1017,9 +1123,11 @@ export function useSurveillanceStore() {
 
   return {
     state,
-    login: (role: UserRole, id: string, pass: string) => SurveillanceStoreManager.login(role, id, pass),
+    login: (id: string, pass: string) => SurveillanceStoreManager.login(id, pass),
     quickLogin: (role: UserRole) => SurveillanceStoreManager.quickLogin(role),
     logout: () => SurveillanceStoreManager.logout(),
+    showToast: (type: 'success' | 'error' | 'info', message: string) => SurveillanceStoreManager.showToast(type, message),
+    removeToast: (id: string) => SurveillanceStoreManager.removeToast(id),
     setActiveRole: (r: UserRole) => SurveillanceStoreManager.setActiveRole(r),
     setLanguage: (lang: Language) => SurveillanceStoreManager.setLanguage(lang),
     setIsOffline: (isOffline: boolean) => SurveillanceStoreManager.setIsOffline(isOffline),
