@@ -28,8 +28,10 @@ import {
   AlertCircle,
   Info,
   Layers,
-  MapPin
+  MapPin,
+  SwitchCamera
 } from 'lucide-react';
+import { getCameraStream, captureVideoFrame } from '../../utils/cameraUtils';
 
 interface Props {
   isOpen: boolean;
@@ -83,11 +85,26 @@ export const ReportCaseModal: React.FC<Props> = ({
 
   // Camera
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [isCameraLoading, setIsCameraLoading] = useState<boolean>(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [capturedSnapshot, setCapturedSnapshot] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Auto-bind stream to video element whenever camera becomes active or mounts
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      const video = videoRef.current;
+      if (video.srcObject !== streamRef.current) {
+        video.srcObject = streamRef.current;
+      }
+      video.play().catch((err) => {
+        console.warn('[ReportCaseModal] Autoplay play() rejected or interrupted:', err);
+      });
+    }
+  }, [isCameraActive]);
 
   // Voice
   const [isRecording, setIsRecording] = useState(false);
@@ -258,42 +275,55 @@ export const ReportCaseModal: React.FC<Props> = ({
   };
 
   // --- Camera Controls ---
-  const startCamera = async () => {
+  const startCamera = async (faceMode: 'environment' | 'user' = cameraFacingMode) => {
     setCameraError(null);
+    setIsCameraLoading(true);
+    stopCamera();
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
+      const stream = await getCameraStream(faceMode);
       streamRef.current = stream;
       setIsCameraActive(true);
+      setIsCameraLoading(false);
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.play().catch((e) => console.warn('[ReportCaseModal] Play warning:', e));
       }
     } catch (err: any) {
-      setCameraError('Camera access not granted or unavailable on this device.');
+      console.warn('[ReportCaseModal] Camera access issue:', err);
+      setIsCameraLoading(false);
       setIsCameraActive(false);
+      setCameraError('Camera access not granted or unavailable on this device. You can upload an image file instead.');
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setIsCameraActive(false);
+    setIsCameraLoading(false);
+  };
+
+  const switchCamera = () => {
+    const nextMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
+    setCameraFacingMode(nextMode);
+    startCamera(nextMode);
   };
 
   const captureSnapshot = () => {
     if (!videoRef.current) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth || 640;
-    canvas.height = videoRef.current.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const dataUrl = captureVideoFrame(videoRef.current, 0.9);
+    if (dataUrl) {
       setCapturedSnapshot(dataUrl);
       stopCamera();
+    } else {
+      setCameraError('Failed to capture frame from camera stream. Please try again.');
     }
   };
 
@@ -689,11 +719,43 @@ export const ReportCaseModal: React.FC<Props> = ({
                   <p className="text-xs text-rose-600 font-semibold">{imageUploadError}</p>
                 )}
 
+                {/* Camera Error Message */}
+                {cameraError && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-semibold">{cameraError}</p>
+                      <p className="mt-0.5 text-slate-600">Tip: Check browser camera permissions, or choose "Upload Photo" below.</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Live Camera Viewfinder */}
-                {isCameraActive && (
-                  <div className="space-y-2 bg-slate-900 rounded-xl p-2 border border-slate-300">
+                {(isCameraActive || isCameraLoading) && (
+                  <div className="space-y-2 bg-slate-900 rounded-xl p-2 border border-slate-300 animate-in fade-in">
                     <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-950 flex items-center justify-center">
-                      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                      <video
+                        ref={(el) => {
+                          videoRef.current = el;
+                          if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                            el.srcObject = streamRef.current;
+                            el.play().catch(() => {});
+                          }
+                        }}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* Loading Overlay */}
+                      {isCameraLoading && (
+                        <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white z-20">
+                          <RefreshCw className="w-7 h-7 animate-spin mb-2 text-blue-400" />
+                          <span className="text-xs text-slate-200 font-semibold">Starting camera feed...</span>
+                        </div>
+                      )}
+
                       {/* Reticle Overlay */}
                       <div className="absolute inset-0 border-2 border-dashed border-blue-400/80 rounded m-6 pointer-events-none flex items-center justify-center">
                         <span className="text-[10px] text-white font-mono bg-black/70 px-2 py-0.5 rounded">
@@ -705,9 +767,19 @@ export const ReportCaseModal: React.FC<Props> = ({
                       <button
                         type="button"
                         onClick={captureSnapshot}
+                        disabled={isCameraLoading}
                         className="gov-btn-primary flex-1"
                       >
                         <Camera className="w-4 h-4" /> Capture Snapshot
+                      </button>
+                      <button
+                        type="button"
+                        onClick={switchCamera}
+                        disabled={isCameraLoading}
+                        className="gov-btn-secondary px-3"
+                        title="Switch camera (Rear / Front)"
+                      >
+                        <SwitchCamera className="w-4 h-4 text-slate-700" />
                       </button>
                       <button
                         type="button"
@@ -770,7 +842,7 @@ export const ReportCaseModal: React.FC<Props> = ({
                 )}
 
                 {/* Action Buttons for Media */}
-                {!isCameraActive && !capturedSnapshot && (
+                {!isCameraActive && !isCameraLoading && !capturedSnapshot && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       type="button"
@@ -791,10 +863,11 @@ export const ReportCaseModal: React.FC<Props> = ({
 
                     <button
                       type="button"
-                      onClick={startCamera}
+                      onClick={() => startCamera()}
+                      disabled={isCameraLoading}
                       className="gov-btn-secondary text-xs flex-1"
                     >
-                      <Camera className="w-3.5 h-3.5 text-blue-600" />
+                      {isCameraLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" /> : <Camera className="w-3.5 h-3.5 text-blue-600" />}
                       <span>{t('openCamera')}</span>
                     </button>
                   </div>

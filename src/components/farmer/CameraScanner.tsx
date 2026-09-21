@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   SwitchCamera
 } from 'lucide-react';
+import { getCameraStream, captureVideoFrame } from '../../utils/cameraUtils';
 
 interface Props {
   onSelectPhotoForReport: (photoUrl: string, fileName: string, detectedSymptoms: string[]) => void;
@@ -82,6 +83,7 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
 
   const [activeMode, setActiveMode] = useState<'camera' | 'upload' | 'preset'>('camera');
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
@@ -95,55 +97,61 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Start Camera Stream
+  // Auto-bind stream to video element whenever camera becomes active or mounts
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      const video = videoRef.current;
+      if (video.srcObject !== streamRef.current) {
+        video.srcObject = streamRef.current;
+      }
+      video.play().catch((err) => {
+        console.warn('[CameraScanner] Autoplay play() rejected or interrupted:', err);
+      });
+    }
+  }, [isCameraActive]);
+
+  // Start Camera Stream with multi-tier fallback
   const startCamera = async (faceMode: 'environment' | 'user' = facingMode) => {
     setCameraError(null);
+    setIsCameraLoading(true);
     stopCamera();
 
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not supported in this browser environment.');
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: faceMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      });
-
+      const stream = await getCameraStream(faceMode);
       streamRef.current = stream;
+      setIsCameraActive(true);
+      setIsCameraLoading(false);
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.play().catch((e) => console.warn('[CameraScanner] Play warning:', e));
       }
-      setIsCameraActive(true);
     } catch (err: any) {
-      console.warn('Camera access issue:', err);
+      console.warn('[CameraScanner] Camera access issue:', err);
+      setIsCameraLoading(false);
+      setIsCameraActive(false);
       setCameraError(
         err.message || 'Camera permission denied or camera device unavailable. You can upload an image or select a clinical preset below.'
       );
-      setIsCameraActive(false);
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
     setIsCameraActive(false);
+    setIsCameraLoading(false);
   };
 
   const toggleFacingMode = () => {
     const nextMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(nextMode);
-    if (isCameraActive) {
+    if (isCameraActive || activeMode === 'camera') {
       startCamera(nextMode);
     }
   };
@@ -164,16 +172,9 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
   // Capture Frame from Video
   const capturePhoto = () => {
     if (videoRef.current) {
-      const video = videoRef.current;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      const dataUrl = captureVideoFrame(videoRef.current, 0.9);
+      if (dataUrl) {
         const fileName = `camera_capture_${Date.now()}.jpg`;
-
         setCurrentPhotoUrl(dataUrl);
         setCurrentFileName(fileName);
         stopCamera();
@@ -318,11 +319,24 @@ export const CameraScanner: React.FC<Props> = ({ onSelectPhotoForReport, onClose
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left / Top: Camera Viewfinder or Photo Frame */}
           <div className="lg:col-span-7 bg-slate-50 rounded-2xl border border-slate-200 p-3 relative flex flex-col justify-between min-h-[320px] overflow-hidden">
-            {activeMode === 'camera' && isCameraActive ? (
+            {activeMode === 'camera' && (isCameraActive || isCameraLoading) ? (
               <div className="relative w-full h-full flex flex-col items-center justify-center">
+                {isCameraLoading && (
+                  <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white z-20 rounded-xl">
+                    <RefreshCw className="w-8 h-8 animate-spin mb-2 text-blue-400" />
+                    <span className="text-xs font-semibold">Initializing camera stream...</span>
+                  </div>
+                )}
+
                 {/* Real Video Stream */}
                 <video
-                  ref={videoRef}
+                  ref={(el) => {
+                    videoRef.current = el;
+                    if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                      el.srcObject = streamRef.current;
+                      el.play().catch(() => {});
+                    }
+                  }}
                   autoPlay
                   playsInline
                   muted
